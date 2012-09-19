@@ -69,7 +69,7 @@ bt_tag_list_foreach (const GstTagList *list, const gchar *tag, gpointer userdata
 GstTagList *
 bt_tag_list_new ()
 {
-    return gst_tag_list_new ();
+    return gst_tag_list_new_empty ();
 }
 
 void
