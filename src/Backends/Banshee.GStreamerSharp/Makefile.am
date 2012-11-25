@@ -23,7 +23,3 @@ else
 include $(top_srcdir)/build/build.dist.mk
 EXTRA_DIST += Banshee.GStreamerSharp.dll.config
 endif
-
-if ENABLE_GAPLESS
-BUILD_DEFINES="-define:ENABLE_GAPLESS"
-endif

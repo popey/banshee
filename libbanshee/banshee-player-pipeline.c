@@ -239,7 +239,6 @@ bp_pipeline_bus_callback (GstBus *bus, GstMessage *message, gpointer userdata)
     return TRUE;
 }
 
-#ifdef ENABLE_GAPLESS
 static void bp_about_to_finish_callback (GstElement *playbin, BansheePlayer *player)
 {
     g_return_if_fail (IS_BANSHEE_PLAYER (player));
@@ -257,7 +256,6 @@ static void bp_about_to_finish_callback (GstElement *playbin, BansheePlayer *pla
         player->about_to_finish_cb (player);
     }
 }
-#endif //ENABLE_GAPLESS
 
 static void bp_volume_changed_callback (GstElement *playbin, GParamSpec *spec, BansheePlayer *player)
 {
@@ -296,12 +294,10 @@ _bp_pipeline_construct (BansheePlayer *player)
     // source and decoder elements) based on source URI and stream content
     player->playbin = gst_element_factory_make ("playbin", "playbin");
 
-#ifdef ENABLE_GAPLESS
     // FIXME: Connect a proxy about-to-finish callback that will generate a next-track-starting callback.
     // This can be removed once playbin generates its own next-track signal.
     // bgo#584987 - this is included in >= 0.10.26
     g_signal_connect (player->playbin, "about-to-finish", G_CALLBACK (bp_about_to_finish_callback), player);
-#endif //ENABLE_GAPLESS
 
     g_return_val_if_fail (player->playbin != NULL, FALSE);
 

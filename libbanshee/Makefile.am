@@ -6,10 +6,6 @@ INCLUDES = \
 	$(LIBBANSHEE_CFLAGS) \
 	$(GST_CFLAGS) 
 
-if ENABLE_GAPLESS
-INCLUDES += -DENABLE_GAPLESS
-endif
-
 bansheelibdir = $(pkglibdir)
 bansheelib_LTLIBRARIES = libbanshee.la
 

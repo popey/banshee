@@ -758,16 +758,11 @@ namespace Banshee.GStreamer
             get { return gapless_enabled; }
             set
             {
-                if (bp_supports_gapless (handle)) {
-                    gapless_enabled = value;
-                    if (value) {
-                        bp_set_about_to_finish_callback (handle, about_to_finish_callback);
-                    } else {
-                        bp_set_about_to_finish_callback (handle, null);
-                    }
+                gapless_enabled = value;
+                if (value) {
+                    bp_set_about_to_finish_callback (handle, about_to_finish_callback);
                 } else {
-                    gapless_enabled = false;
-                    next_track_pending = false;
+                    bp_set_about_to_finish_callback (handle, null);
                 }
             }
         }
@@ -892,13 +887,11 @@ namespace Banshee.GStreamer
                 Catalog.GetString ("For tracks that have ReplayGain data, automatically scale (normalize) playback volume"),
                 delegate { ReplayGainEnabled = ReplayGainEnabledSchema.Get (); }
             ));
-            if (bp_supports_gapless (handle)) {
-                gapless_preference = service["general"]["misc"].Add (new SchemaPreference<bool> (GaplessEnabledSchema,
-                        Catalog.GetString ("Enable _gapless playback"),
-                        Catalog.GetString ("Eliminate the small playback gap on track change. Useful for concept albums and classical music"),
-                        delegate { GaplessEnabled = GaplessEnabledSchema.Get (); }
-                ));
-            }
+            gapless_preference = service["general"]["misc"].Add (new SchemaPreference<bool> (GaplessEnabledSchema,
+                    Catalog.GetString ("Enable _gapless playback"),
+                    Catalog.GetString ("Eliminate the small playback gap on track change. Useful for concept albums and classical music"),
+                    delegate { GaplessEnabled = GaplessEnabledSchema.Get (); }
+            ));
         }
 
         private void UninstallPreferences ()
@@ -909,9 +902,7 @@ namespace Banshee.GStreamer
             }
 
             service["general"]["misc"].Remove (replaygain_preference);
-            if (bp_supports_gapless (handle)) {
-                service["general"]["misc"].Remove (gapless_preference);
-            }
+            service["general"]["misc"].Remove (gapless_preference);
             replaygain_preference = null;
             gapless_preference = null;
         }
@@ -978,9 +969,6 @@ namespace Banshee.GStreamer
         [DllImport ("libbanshee.dll")]
         private static extern void bp_set_about_to_finish_callback (HandleRef player,
             BansheePlayerAboutToFinishCallback cb);
-
-        [DllImport ("libbanshee.dll")]
-        private static extern bool bp_supports_gapless (HandleRef player);
 
         [DllImport ("libbanshee.dll")]
         private static extern bool bp_open (HandleRef player, IntPtr uri, bool maybeVideo);
