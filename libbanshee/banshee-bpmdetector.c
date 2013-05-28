@@ -159,8 +159,8 @@ bbd_pipeline_bus_callback (GstBus *bus, GstMessage *message, gpointer data)
 }
 
 static void
-bbd_new_decoded_pad(GstElement *decodebin, GstPad *pad, 
-    gboolean last, gpointer data)
+bbd_pad_added(GstElement *decodebin, GstPad *pad, 
+    gpointer data)
 {
     GstCaps *caps;
     GstStructure *str;
@@ -244,8 +244,8 @@ bbd_pipeline_construct (BansheeBpmDetector *detector)
     }
 
     // decodebin and audioconvert are linked dynamically when the decodebin creates a new pad
-    g_signal_connect(detector->decodebin, "new-decoded-pad", 
-        G_CALLBACK(bbd_new_decoded_pad), detector);
+    g_signal_connect(detector->decodebin, "pad-added", 
+        G_CALLBACK(bbd_pad_added), detector);
 
     if (!gst_element_link_many (detector->audioconvert, detector->bpmdetect, detector->fakesink, NULL)) {
         bbd_raise_error (detector, _("Could not link pipeline elements"), NULL);

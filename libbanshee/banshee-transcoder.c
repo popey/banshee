@@ -185,8 +185,8 @@ gst_transcoder_build_encoder(const gchar *encoder_pipeline)
 }    
 
 static void
-gst_transcoder_new_decoded_pad(GstElement *decodebin, GstPad *pad, 
-    gboolean last, gpointer data)
+gst_transcoder_pad_added(GstElement *decodebin, GstPad *pad, 
+    gpointer data)
 {
     GstCaps *caps;
     GstStructure *str;
@@ -293,8 +293,8 @@ gst_transcoder_create_pipeline(GstTranscoder *transcoder,
         
     gst_element_link(source_elem, decoder_elem);
 
-    g_signal_connect(decoder_elem, "new-decoded-pad", 
-        G_CALLBACK(gst_transcoder_new_decoded_pad), transcoder);
+    g_signal_connect(decoder_elem, "pad-added", 
+        G_CALLBACK(gst_transcoder_pad_added), transcoder);
 
     gst_bus_add_watch(gst_pipeline_get_bus(GST_PIPELINE(transcoder->pipeline)), 
         gst_transcoder_bus_callback, transcoder);
