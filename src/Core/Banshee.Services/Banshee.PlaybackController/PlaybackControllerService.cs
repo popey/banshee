@@ -38,8 +38,8 @@ using Banshee.MediaEngine;
 
 namespace Banshee.PlaybackController
 {
-    public class PlaybackControllerService : IRequiredService, ICanonicalPlaybackController,
-        IPlaybackController, IPlaybackControllerService
+    public class PlaybackControllerService : IDBusExportable, IRequiredService,
+        ICanonicalPlaybackController, IPlaybackController, IPlaybackControllerService
     {
         private enum Direction
         {

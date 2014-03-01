@@ -40,7 +40,7 @@ using Banshee.Playlist;
 
 namespace Banshee.Gui
 {
-    public class GlobalActions : BansheeActionGroup, IGlobalUIActions
+    public class GlobalActions : BansheeActionGroup, IGlobalUIActions, IDBusExportable
     {
         public GlobalActions () : base ("Global")
         {

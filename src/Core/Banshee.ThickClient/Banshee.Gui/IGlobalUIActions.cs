@@ -32,7 +32,7 @@ using Banshee.ServiceStack;
 namespace Banshee.Gui
 {
     [Interface ("org.bansheeproject.Banshee.GlobalUIActions")]
-    public interface IGlobalUIActions : IDBusExportable
+    public interface IGlobalUIActions
     {
         void ShowImportDialog ();
         void ShowAboutDialog ();

@@ -51,7 +51,7 @@ namespace Banshee.MediaEngine
     public delegate bool TrackInterceptHandler (TrackInfo track);
 
     public class PlayerEngineService : IInitializeService, IDelayedInitializeService,
-        IRequiredService, IPlayerEngineService, IDisposable
+        IRequiredService, IPlayerEngineService, IDBusExportable, IDisposable
     {
         private List<PlayerEngine> engines = new List<PlayerEngine> ();
         private PlayerEngine active_engine;
