@@ -56,7 +56,11 @@ namespace Banshee.Database
         public bool LikelihoodSupport {
             get {
                 if (!likelihood_support.HasValue) {
-                    likelihood_support = Query<bool> ("SELECT sqlite_version () >= '3.8.1'");
+                    // emulate the SQLITE_VERSION_NUMBER macro
+                    string[] v = Query<string> ("SELECT sqlite_version ()").Split ('.');
+                    likelihood_support = (Int32.Parse (v[0]) * 1000000 +
+                                          Int32.Parse (v[1]) * 1000 +
+                                          Int32.Parse (v[2])) >= 3008001;
                 }
                 return likelihood_support.Value;
             }
