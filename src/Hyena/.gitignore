@@ -1,0 +1,17 @@
+Hyena.userprefs
+*.pidb
+bin/
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+config.log
+config.status
+configure
+install-sh
+missing
+*.pc
+*.exe
+Hyena/obj
+Hyena.Gui/obj
+Hyena.Data.Sqlite/obj

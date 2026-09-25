@@ -1,3 +1,0 @@
-[submodule "src/Hyena"]
-	path = src/Hyena
-	url = git://git.gnome.org/hyena

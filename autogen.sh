@@ -64,9 +64,7 @@ check_autotool_version $LIBTOOLIZE 1.4.3
 check_autotool_version intltoolize 0.35.0
 check_autotool_version pkg-config 0.14.0
 
-if git --help &>/dev/null; then
-	git submodule update --init
-fi
+# Hyena is vendored at the upstream release revision; no submodule fetch needed.
 
 run intltoolize --force --copy
 run $LIBTOOLIZE --force --copy --automake
