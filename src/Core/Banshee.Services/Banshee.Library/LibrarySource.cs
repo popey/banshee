@@ -127,6 +127,20 @@ namespace Banshee.Library
                 if (dir == null) {
                     BaseDirectory = dir = DefaultBaseDirectory;
                 }
+                // snapd copies revision data on refresh, but saved absolute
+                // revision paths still name the old, confined-out directory.
+                // Use its stable current alias for library folders and new URIs.
+                string snap_data = Environment.GetEnvironmentVariable ("SNAP_USER_DATA");
+                if (!String.IsNullOrEmpty (snap_data)) {
+                    string root = System.IO.Path.GetDirectoryName (snap_data) + "/";
+                    string pattern = "^" + System.Text.RegularExpressions.Regex.Escape (root)
+                        + "(?:x?[0-9]+)/";
+                    string stable = System.Text.RegularExpressions.Regex.Replace (
+                        dir, pattern, root + "current/");
+                    if (stable != dir) {
+                        BaseDirectory = dir = stable;
+                    }
+                }
                 return dir;
             }
             protected set {
