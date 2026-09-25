@@ -16,3 +16,6 @@ mcs -r:"$MONO_PATH/Migo.dll" -out:"$probe_dir/podcast-download.exe" \
 python3 "$test_dir/podcast-downloads.py" "$probe_dir/podcast-download.exe"
 mcs -out:"$probe_dir/music-folders.exe" "$test_dir/music-folders-probe.cs"
 mono "$probe_dir/music-folders.exe" "$MONO_PATH/Nereid.exe"
+mcs -r:"$MONO_PATH/Lastfm.dll" -r:"$MONO_PATH/Hyena.dll" \
+    -out:"$probe_dir/lastfm-auth.exe" "$test_dir/lastfm-auth-probe.cs"
+mono "$probe_dir/lastfm-auth.exe"

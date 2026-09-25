@@ -96,6 +96,9 @@ namespace Lastfm
         ApiKeySuspended,
         Deprecated,
         RateLimitExceded = 29,
+        BrowserLaunchFailed = -2,
+        NetworkError = -3,
+        InvalidResponse = -4,
         Unknown = -1 // not an official code, just the fall back
     }
 
@@ -314,6 +317,12 @@ namespace Lastfm
                     return Catalog.GetString ("This type of request is no longer supported");
                 case StationError.RateLimitExceded:
                     return Catalog.GetString ("Your IP has made too many requests in a short period, exceeding our API guidelines");
+                case StationError.BrowserLaunchFailed:
+                    return Catalog.GetString ("Could not open the Last.fm authorization page. Check your default browser settings and try logging in again.");
+                case StationError.NetworkError:
+                    return Catalog.GetString ("Could not connect to Last.fm. Check your network connection and try logging in again.");
+                case StationError.InvalidResponse:
+                    return Catalog.GetString ("Last.fm returned an invalid authorization response. Please try logging in again.");
                 case StationError.Unknown:
                     return Catalog.GetString ("There was an unknown error.");
             }

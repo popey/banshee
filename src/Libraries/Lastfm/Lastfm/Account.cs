@@ -29,6 +29,7 @@
 
 using System;
 using System.Collections;
+using System.Net;
 using System.Text;
 
 using Hyena;
@@ -41,6 +42,10 @@ namespace Lastfm
 
         // Only used during the authentication process
         private string authentication_token;
+
+        public bool HasPendingAuthorization {
+            get { return !String.IsNullOrEmpty (authentication_token); }
+        }
 
         private string username;
         public string UserName {
@@ -94,26 +99,51 @@ namespace Lastfm
             OnUpdated ();
         }
 
+        // Isolate transport so authentication transitions can be checked without
+        // live credentials or browser authorization.
+        protected virtual Hyena.Json.JsonObject SendAuthorizationRequest (LastfmRequest request)
+        {
+            request.Send ();
+            return request.GetResponseObject ();
+        }
+
         public StationError RequestAuthorization ()
         {
+            // A retry must never reuse an earlier browser authorization token.
+            authentication_token = null;
             try {
                 LastfmRequest get_token = new LastfmRequest ("auth.getToken", RequestType.Read, ResponseFormat.Json);
-                get_token.Send ();
-
-                var response = get_token.GetResponseObject ();
+                var response = SendAuthorizationRequest (get_token);
                 object error_code;
                 if (response.TryGetValue ("error", out error_code)) {
                     Log.WarningFormat ("Lastfm error {0} : {1}", (int)error_code, (string)response["message"]);
                     return (StationError) Convert.ToInt32 (error_code);
                 }
 
-                authentication_token = (string)response["token"];
-                Browser.Open (String.Format ("https://www.last.fm/api/auth?api_key={0}&token={1}", LastfmCore.ApiKey, authentication_token));
+                var token = response.ContainsKey ("token") ? response["token"] as string : null;
+                if (String.IsNullOrEmpty (token)) {
+                    return StationError.InvalidResponse;
+                }
 
+                // Browser handlers may either return false or throw. Neither is success.
+                try {
+                    if (!Browser.Open (String.Format ("https://www.last.fm/api/auth?api_key={0}&token={1}",
+                        LastfmCore.ApiKey, Uri.EscapeDataString (token)))) {
+                        return StationError.BrowserLaunchFailed;
+                    }
+                } catch (Exception e) {
+                    Log.WarningFormat ("Last.fm browser launch failed ({0})", e.GetType ().Name);
+                    return StationError.BrowserLaunchFailed;
+                }
+                authentication_token = token;
                 return StationError.None;
+            } catch (WebException e) {
+                Log.WarningFormat ("Last.fm authorization request failed ({0})", e.Status);
+                return StationError.NetworkError;
             } catch (Exception e) {
-                Log.Exception ("Error in Lastfm.Account.RequestAuthorization", e);
-                return StationError.Unknown;
+                // Exception messages can contain authorization URLs or response data.
+                Log.WarningFormat ("Last.fm authorization response failed ({0})", e.GetType ().Name);
+                return StationError.InvalidResponse;
             }
         }
 
@@ -126,8 +156,7 @@ namespace Lastfm
             try {
                 LastfmRequest get_session = new LastfmRequest ("auth.getSession", RequestType.SessionRequest, ResponseFormat.Json);
                 get_session.AddParameter ("token", authentication_token);
-                get_session.Send ();
-                var response = get_session.GetResponseObject ();
+                var response = SendAuthorizationRequest (get_session);
                 object error_code;
                 if (response.TryGetValue ("error", out error_code)) {
                     Log.WarningFormat ("Lastfm error {0} : {1}", (int)error_code, (string)response["message"]);
@@ -135,17 +164,25 @@ namespace Lastfm
                 }
 
                 var session = (Hyena.Json.JsonObject)response["session"];
-                UserName = (string)session["name"];
-                SessionKey = (string)session["key"];
-                Subscriber = session["subscriber"].ToString ().Equals ("1");
+                var name = session.ContainsKey ("name") ? session["name"] as string : null;
+                var key = session.ContainsKey ("key") ? session["key"] as string : null;
+                if (String.IsNullOrEmpty (name) || String.IsNullOrEmpty (key)) {
+                    return StationError.InvalidResponse;
+                }
+                UserName = name;
+                SessionKey = key;
+                Subscriber = session.ContainsKey ("subscriber") && session["subscriber"].ToString ().Equals ("1");
 
                 // The authentication token is only valid once, and for a limited time
                 authentication_token = null;
 
                 return StationError.None;
+            } catch (WebException e) {
+                Log.WarningFormat ("Last.fm session request failed ({0})", e.Status);
+                return StationError.NetworkError;
             } catch (Exception e) {
-                Log.Exception ("Error in Lastfm.Account.FetchSessionKey", e);
-                return StationError.Unknown;
+                Log.WarningFormat ("Last.fm session response failed ({0})", e.GetType ().Name);
+                return StationError.InvalidResponse;
             }
         }
 

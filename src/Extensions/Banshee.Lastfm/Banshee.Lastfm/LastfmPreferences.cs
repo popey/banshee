@@ -59,7 +59,7 @@ namespace Banshee.Lastfm
         }
 
         private bool NeedAuthorization {
-            get { return !String.IsNullOrEmpty (username_preference.Value) && !Authorized; }
+            get { return source.Account.HasPendingAuthorization && !Authorized; }
         }
 
         public string PageId {
@@ -194,15 +194,12 @@ namespace Banshee.Lastfm
 
         private void OnSignInClicked (object o, EventArgs args)
         {
-            if (sign_in_state != SignInState.NeedAuthorization) {
-                sign_in_state = SignInState.NeedAuthorization;
-            }
-
-            need_authorization_checked = !need_authorization_checked;
-            BuildSignIn ();
-
             source.Account.SessionKey = null;
-            source.Account.RequestAuthorization ();
+            last_sign_in_error = source.Account.RequestAuthorization ();
+            sign_in_state = last_sign_in_error == StationError.None
+                ? SignInState.NeedAuthorization : SignInState.Failed;
+            need_authorization_checked = false;
+            BuildSignIn ();
         }
 
         private void OnSignOutClicked (object o, EventArgs args)
@@ -221,10 +218,10 @@ namespace Banshee.Lastfm
                 GetSignInState ();
             } else if (last_sign_in_error == StationError.None) {
                 LastfmSource.LastSessionKeySchema.Set (source.Account.SessionKey);
-                source.Account.UserName = LastfmSource.LastUserSchema.Get ();
+                username_preference.Value = source.Account.UserName;
                 source.Account.Save ();
                 var streaming_addin = AddinManager.Registry.GetAddins ()
-                    .Single (a => a.LocalId.Equals ("Banshee.LastfmStreaming"));
+                    .SingleOrDefault (a => a.LocalId.Equals ("Banshee.LastfmStreaming"));
                 if (source.Account.Subscriber &&
                     streaming_addin != null &&
                     !streaming_addin.Enabled) {

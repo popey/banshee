@@ -10,9 +10,11 @@ the Git-source migration is local and awaiting validation/publication.
 
 ## Current baseline
 
-- [ ] Harden Last.fm login: handle token/browser-launch failures and preserve
-  the API-returned username. Investigate Joey's login/Archive/video reports
-  with exact reproduction details. [Investigation](docs/lastfm-report-investigation.md).
+- [x] Harden Last.fm login: handle token/browser-launch failures and preserve
+  the API-returned username. Built and tested locally; not yet released to the Store.
+  [Validation](docs/lastfm-login-fix.md).
+- [ ] Investigate Joey's login/Archive/video reports with exact reproduction
+  details. [Investigation](docs/lastfm-report-investigation.md).
 
 - [ ] Investigate enabling GitHub Issues on `popey/banshee`: check fork
   settings, decide labels and bug-report templates, and link the tracker

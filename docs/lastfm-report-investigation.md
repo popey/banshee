@@ -41,6 +41,6 @@ Logging In. Obtain the Archive query/item and video codec separately.
 Only relevant redacted log excerpts are needed; do not share config.xml,
 authorization URLs, session keys or tokens.
 
-Fix token/browser failure handling and preserve Last.fm's canonical username,
-with focused regression coverage. No source change or Store release was made
-during this investigation.
+The confirmed login defects have now been fixed and validated in a local build;
+see [the fix and validation record](lastfm-login-fix.md). Store stable remains
+revision 1. These fixes do not establish the cause of Joey's reported failures.

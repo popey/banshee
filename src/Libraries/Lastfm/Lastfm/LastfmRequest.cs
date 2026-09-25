@@ -294,6 +294,9 @@ namespace Lastfm
                 response = (HttpWebResponse) request.GetResponse ();
             } catch (WebException e) {
                 Log.DebugFormat ("Last.fm HTTP request failed: {0}", e.Status);
+                if (e.Response == null) {
+                    throw;
+                }
                 response = (HttpWebResponse)e.Response;
             }
             return response != null ? response.GetResponseStream () : null;
@@ -319,6 +322,9 @@ namespace Lastfm
                 response = (HttpWebResponse) request.GetResponse ();
             } catch (WebException e) {
                 Log.DebugFormat ("Last.fm HTTP request failed: {0}", e.Status);
+                if (e.Response == null) {
+                    throw;
+                }
                 response = (HttpWebResponse)e.Response;
             }
             return response != null ? response.GetResponseStream () : null;

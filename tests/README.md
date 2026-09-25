@@ -7,7 +7,8 @@ sh /path/to/tests/run-built-regressions.sh /root/parts/banshee/build
 ```
 
 This compiles the existing probes and runs 24 service checks, nine podcast
-transfer cases and 14 XDG folder cases against freshly built assemblies.
+transfer cases, 14 XDG folder cases and 16 Last.fm authorization checks against
+freshly built assemblies.
 It uses local fixtures, not a real Last.fm account or the music library.
 Results of the Git-source migration are in
 [the migration validation](../docs/revival-validation.md).
@@ -106,3 +107,32 @@ for `Musique # collection`; it does not change the real desktop or library.
 Check no import before confirmation, chooser cancellation, Not now persistence,
 explicit import from both the suggestion and another folder, and relaunch.
 Reusing each case preserves its profile for persistence tests.
+
+## Last.fm login failure handling
+
+`lastfm-auth-probe.cs` exercises the compiled Account implementation with fake
+transport and browser callbacks. It covers token/API/transport failures,
+browser failures, retries, pending authorization, malformed sessions and the
+canonical account name without using credentials.
+
+`lastfm-login-ui-probe.cs` invokes the actual preferences click handler and
+checks its GTK widgets with fake transport and in-memory configuration. It
+checks browser failure, network failure and successful retry. Compile in LXD:
+
+```sh
+export MONO_PATH=/root/parts/banshee/build/bin
+mcs -pkg:gtk-sharp-2.0 -r:$MONO_PATH/Lastfm.dll -r:$MONO_PATH/Hyena.dll \
+    -r:$MONO_PATH/Banshee.Core.dll -r:$MONO_PATH/Banshee.Services.dll \
+    -out:/root/lastfm-login-ui-probe.exe /root/lastfm-login-ui-probe.cs
+```
+
+Copy the source into the builder first, then pull the executable beside
+`tests/run-lastfm-login-ui.sh` on the host. In the desktop session, run:
+
+```sh
+snap run --shell banshee -c '/absolute/path/to/checkout/tests/run-lastfm-login-ui.sh'
+```
+
+This checks installed snap assemblies without opening a browser, reading the
+real account configuration, or submitting scrobbles. It does not replace a
+real browser authorization test on the reporting user's desktop.
