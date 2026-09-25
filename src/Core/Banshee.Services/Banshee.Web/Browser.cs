@@ -37,6 +37,12 @@ using Banshee.ServiceStack;
 
 namespace Banshee.Web
 {
+    [global::DBus.Interface ("io.snapcraft.Launcher")]
+    public interface ISnapUrlLauncher
+    {
+        void OpenURL (string url);
+    }
+
     public class Browser
     {
         public delegate bool OpenUrlHandler (string uri);
@@ -56,7 +62,12 @@ namespace Banshee.Web
         {
             try {
                 url = Uri.EscapeUriString (url);
-                if (open_handler != null) {
+                if (!String.IsNullOrEmpty (Environment.GetEnvironmentVariable ("SNAP"))) {
+                    var launcher = global::DBus.Bus.Session.GetObject<ISnapUrlLauncher> (
+                        "io.snapcraft.Launcher", new global::DBus.ObjectPath ("/io/snapcraft/Launcher"));
+                    launcher.OpenURL (url);
+                    return true;
+                } else if (open_handler != null) {
                     return open_handler (url);
                 } else {
                     Process.Start (url);
@@ -66,10 +77,18 @@ namespace Banshee.Web
                 if (showErrors) {
                     Log.Warning (Catalog.GetString ("Could not launch URL"),
                         String.Format (Catalog.GetString ("{0} could not be opened: {1}\n\n " +
-                            "Check your 'Preferred Applications' settings."), url, e.Message), true);
+                            "Check your 'Preferred Applications' settings."),
+                            SafeDisplayUrl (url), e.GetType ().Name), true);
                 }
                 return false;
             }
+        }
+
+        private static string SafeDisplayUrl (string url)
+        {
+            Uri parsed;
+            return Uri.TryCreate (url, UriKind.Absolute, out parsed)
+                ? parsed.GetLeftPart (UriPartial.Path) : "URL";
         }
 
         public static readonly string UserAgent = String.Format ("Banshee/{0} (http://banshee-project.org/)",
