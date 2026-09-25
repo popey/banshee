@@ -134,7 +134,7 @@ namespace Banshee.InternetArchive
             var help_item = new ImageMenuItem (Catalog.GetString ("_Help")) {
                 Image = new Image ("gtk-help", IconSize.Menu)
             };
-            help_item.Activated += delegate { Banshee.Web.Browser.Open ("http://www.archive.org/advancedsearch.php"); };
+            help_item.Activated += delegate { Banshee.Web.Browser.Open ("https://archive.org/advancedsearch.php"); };
             entry.Menu.Append (help_item);
             entry.Menu.ShowAll ();
 

@@ -58,7 +58,7 @@ namespace InternetArchive
                         loc = object_key ?? "";
                     }
 
-                    location = location_root + loc;
+                    location = location_root + String.Join ("/", loc.TrimStart ('/').Split ('/').Select (Uri.EscapeDataString).ToArray ());
                 }
 
                 return location;
@@ -76,7 +76,8 @@ namespace InternetArchive
                     return 0;
 
                 var bits = track.Split ('/', '-');
-                return Int32.Parse (bits[0]);
+                int number;
+                return Int32.TryParse (bits[0], out number) ? number : 0;
             }
         }
 

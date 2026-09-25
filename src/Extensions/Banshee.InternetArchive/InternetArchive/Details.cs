@@ -125,19 +125,23 @@ namespace InternetArchive
         }
 
         public string ImageUrl {
-            get { return misc.Get<string> ("image"); }
+            get { return "https://archive.org/services/img/" + Uri.EscapeDataString (id); }
+        }
+
+        public bool HasDownloadStats {
+            get { return item != null && item.ContainsKey ("downloads"); }
         }
 
         public long DownloadsAllTime {
-            get { return item.Get<int> ("downloads"); }
+            get { return item.Get<long> ("downloads"); }
         }
 
         public long DownloadsLastMonth {
-            get { return item.Get<int> ("month"); }
+            get { return item.Get<long> ("month"); }
         }
 
         public long DownloadsLastWeek {
-            get { return item.Get<int> ("week"); }
+            get { return item.Get<long> ("week"); }
         }
 
         public DateTime DateCreated {
@@ -155,11 +159,21 @@ namespace InternetArchive
 
         public IEnumerable<DetailsFile> Files {
             get {
-                string location_root = String.Format ("http://{0}{1}", details.Get<string> ("server"), details.Get<string> ("dir"));
-                var files = details["files"] as JsonObject;
-                foreach (string key in files.Keys) {
-                    var file = files[key] as JsonObject;
-                    yield return new DetailsFile (file, location_root, key);
+                string location_root = "https://archive.org/download/" + Uri.EscapeDataString (id) + "/";
+                var files = details.Get<JsonArray> ("files");
+                if (files != null) {
+                    foreach (JsonObject file in files) {
+                        if (file != null && !String.IsNullOrEmpty (file.Get<string> ("name")) &&
+                            file.Get<string> ("private") != "true" && !file.Get<bool> ("private")) {
+                            yield return new DetailsFile (file, location_root, file.Get<string> ("name"));
+                        }
+                    }
+                } else {
+                    // Retain compatibility with item JSON cached by older builds.
+                    var legacy_files = details.Get<JsonObject> ("files");
+                    if (legacy_files != null) foreach (string key in legacy_files.Keys) {
+                        yield return new DetailsFile (legacy_files[key] as JsonObject, location_root, key);
+                    }
                 }
             }
         }
@@ -178,7 +192,10 @@ namespace InternetArchive
         }
 
         public double AvgRating {
-            get { return review_info.Get<double> ("avg_rating"); }
+            get {
+                if (reviews == null || reviews.Count == 0) return 0;
+                return Reviews.Average (review => (double)review.Stars);
+            }
         }
 
         public int AvgRatingInt {
@@ -186,11 +203,11 @@ namespace InternetArchive
         }
 
         public int NumReviews {
-            get { return review_info.Get<int> ("num_reviews"); }
+            get { return reviews == null ? 0 : reviews.Count; }
         }
 
         public string WebpageUrl {
-            get { return String.Format ("http://www.archive.org/details/{0}", id); }
+            get { return String.Format ("https://archive.org/details/{0}", id); }
         }
 
         public string Json {
@@ -215,10 +232,14 @@ namespace InternetArchive
                 details = new Hyena.Json.Deserializer (json).Deserialize () as JsonObject;
             }
 
+            if (details == null || details.ContainsKey ("error") || details.Get<JsonObject> ("metadata") == null) {
+                throw new InvalidDataException ("This Internet Archive item is unavailable or returned invalid metadata.");
+            }
             if (details != null) {
                 metadata = details.Get<JsonObject> ("metadata");
                 misc     = details.Get<JsonObject> ("misc");
-                item     = details.Get<JsonObject> ("item");
+                item     = details.Get<JsonObject> ("item") ?? details;
+                reviews  = details.Get<JsonArray> ("reviews");
                 var r    = details.Get<JsonObject> ("reviews");
                 if (r != null) {
                     reviews = r.Get<JsonArray> ("reviews");
@@ -230,7 +251,7 @@ namespace InternetArchive
         private static string FetchDetails (string id)
         {
             HttpWebResponse response = null;
-            string url = String.Format ("http://www.archive.org/details/{0}&output=json", id);
+            string url = String.Format ("https://archive.org/metadata/{0}", Uri.EscapeDataString (id));
 
             try {
                 Hyena.Log.Debug ("ArchiveSharp Getting Details", url);
@@ -243,7 +264,7 @@ namespace InternetArchive
                 response = (HttpWebResponse) request.GetResponse ();
 
                 if (response.StatusCode != HttpStatusCode.OK) {
-                    return null;
+                    throw new WebException ("Internet Archive returned an unexpected HTTP status.");
                 }
 
                 using (Stream stream = response.GetResponseStream ()) {

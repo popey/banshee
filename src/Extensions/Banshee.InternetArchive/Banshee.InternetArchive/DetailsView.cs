@@ -233,9 +233,11 @@ namespace Banshee.InternetArchive
 
             table.AddSeparator ();
 
-            AddToTable (table, Catalog.GetString ("Downloads, overall:"), details.DownloadsAllTime);
-            AddToTable (table, Catalog.GetString ("Downloads, past month:"), details.DownloadsLastMonth);
-            AddToTable (table, Catalog.GetString ("Downloads, past week:"), details.DownloadsLastWeek);
+            if (details.HasDownloadStats) {
+                AddToTable (table, Catalog.GetString ("Downloads, overall:"), details.DownloadsAllTime);
+                AddToTable (table, Catalog.GetString ("Downloads, past month:"), details.DownloadsLastMonth);
+                AddToTable (table, Catalog.GetString ("Downloads, past week:"), details.DownloadsLastWeek);
+            }
 
             table.AddSeparator ();
 
@@ -315,7 +317,7 @@ namespace Banshee.InternetArchive
                 vbox.PackStart (reviews, true, true, 0);
             }
 
-            string write_review_url = String.Format ("http://www.archive.org/write-review.php?identifier={0}", item.Id);
+            string write_review_url = String.Format ("https://archive.org/write-review.php?identifier={0}", item.Id);
             var write_review_button = new LinkButton (write_review_url, Catalog.GetString ("Write your own review"));
             write_review_button.Clicked += (o, a) => Banshee.Web.Browser.Open (write_review_url);
             write_review_button.Xalign = 0f;

@@ -72,8 +72,7 @@ namespace InternetArchive
             sb.AppendFormat ("&rows={0}", NumResults);
             // IA's paging starts at 1, not 0
             sb.AppendFormat ("&page={0}", Page + 1);
-            sb.AppendFormat ("&fmt={0}", "json");
-            sb.Append ("&xmlsearch=Search");
+            sb.Append ("&output=json");
 
             return sb.ToString ();
         }
@@ -81,7 +80,7 @@ namespace InternetArchive
         public string RssUrl {
             get {
                 return String.Format (
-                    "http://www.archive.org/services/collection-rss.php?query={0}",
+                    "https://archive.org/services/collection-rss.php?query={0}",
                     System.Web.HttpUtility.UrlEncode (Query)
                 );
             }
@@ -93,7 +92,7 @@ namespace InternetArchive
             string url = null;
 
             try {
-                url = String.Format ("http://www.archive.org/advancedsearch.php?{0}", GetQuery ());
+                url = String.Format ("https://archive.org/advancedsearch.php?{0}", GetQuery ());
                 Hyena.Log.Debug ("ArchiveSharp Searching", url);
 
                 var request = (HttpWebRequest) WebRequest.Create (url);
@@ -104,7 +103,7 @@ namespace InternetArchive
                 response = (HttpWebResponse) request.GetResponse ();
 
                 if (response.StatusCode != HttpStatusCode.OK) {
-                    return null;
+                    throw new WebException ("Internet Archive returned an unexpected HTTP status.");
                 }
 
                 using (Stream stream = response.GetResponseStream ()) {

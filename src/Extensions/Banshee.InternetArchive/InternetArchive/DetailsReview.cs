@@ -66,7 +66,7 @@ namespace InternetArchive
         }
 
         public DateTime DateReviewed {
-            get { return DateTime.Parse (review.Get<string> ("reviewdate")); }
+            get { DateTime value; return DateTime.TryParse (review.Get<string> ("reviewdate"), out value) ? value : DateTime.MinValue; }
         }
     }
 }

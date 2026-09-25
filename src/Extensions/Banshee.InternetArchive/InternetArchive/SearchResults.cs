@@ -47,6 +47,11 @@ namespace InternetArchive
         {
             var json = new Deserializer (resultsString).Deserialize () as JsonObject;
 
+            if (json == null || json.ContainsKey ("error") || json.Get<JsonObject> ("response") == null ||
+                json.Get<JsonObject> ("response").Get<JsonArray> ("docs") == null) {
+                throw new InvalidDataException ("Internet Archive returned an invalid search response.");
+            }
+
             var response_header = json.Get<JsonObject> ("responseHeader");
             if (response_header != null) {
                 var response_header_params = response_header.Get<JsonObject> ("params");

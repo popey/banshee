@@ -148,8 +148,8 @@ namespace Banshee.InternetArchive
                 Markup = Catalog.GetString ("The Internet Archive, a 501(c)(3) non-profit, is building a digital library of Internet sites and other cultural artifacts in digital form. Like a paper library, we provide free access to researchers, historians, scholars, and the general public.")
             };
 
-            var visit_button = new LinkButton ("http://archive.org/", Catalog.GetString ("Visit the Internet Archive online at archive.org"));
-            visit_button.Clicked += (o, a) => Banshee.Web.Browser.Open ("http://archive.org/");
+            var visit_button = new LinkButton ("https://archive.org/", Catalog.GetString ("Visit the Internet Archive online at archive.org"));
+            visit_button.Clicked += (o, a) => Banshee.Web.Browser.Open ("https://archive.org/");
             visit_button.Xalign = 0f;
             var visit_box = new HBox ();
             visit_box.PackStart (visit_button, false, false, 0);

@@ -26,6 +26,7 @@
 
 using System;
 using System.IO;
+using System.Globalization;
 using System.Net;
 using System.Linq;
 using System.Collections.Generic;
@@ -49,34 +50,34 @@ namespace InternetArchive
                     } else if (result is string) {
                         var type = typeof (T);
                         string i = result as string;
-                        if (type == typeof(Int32)) {
+                        if (type == typeof(bool)) {
+                            result = Boolean.Parse (i);
+                        } else if (type == typeof(Int32)) {
                             result = Int32.Parse (i);
                         } else if (type == typeof(Int64)) {
                             result = Int64.Parse (i);
                         } else if (type == typeof(double)) {
-                            result = Double.Parse (i);
+                            result = Double.Parse (i, CultureInfo.InvariantCulture);
                         } else if (type == typeof(TimeSpan)) {
-                            int h = 0, m = 0, s = 0;
-                            var bits = i.Split (':');
-
-                            if (bits.Length > 0)
-                                s = Int32.Parse (bits[bits.Length - 1]);
-
-                            if (bits.Length > 1)
-                                m = Int32.Parse (bits[bits.Length - 2]);
-
-                            if (bits.Length > 2)
-                                h = Int32.Parse (bits[bits.Length - 3]);
-
-                            result = new TimeSpan (h, m, s);
+                            double seconds = 0;
+                            foreach (string part in i.Split (':')) {
+                                seconds = seconds * 60 + Double.Parse (part, CultureInfo.InvariantCulture);
+                            }
+                            result = TimeSpan.FromSeconds (seconds);
                         }
+                    } else if (typeof (T) == typeof (string)) {
+                        result = Convert.ToString (result, CultureInfo.InvariantCulture);
+                    } else if (typeof (T) == typeof (TimeSpan) && result is IConvertible) {
+                        result = TimeSpan.FromSeconds (Convert.ToDouble (result, CultureInfo.InvariantCulture));
+                    } else if (typeof (T) == typeof (long) || typeof (T) == typeof (int) || typeof (T) == typeof (double)) {
+                        result = Convert.ChangeType (result, typeof (T), CultureInfo.InvariantCulture);
                     } else {
                         result = default (T);
                     }
 
                     return (T) result;
                 } catch {
-                    Console.WriteLine ("Couldn't cast {0} ({1}) as {2} for key {3}", result, result.GetType (), typeof(T), key);
+                    Console.WriteLine ("Couldn't cast {0} ({1}) as {2} for key {3}", result, result == null ? null : result.GetType (), typeof(T), key);
                 }
             }
 
@@ -88,7 +89,11 @@ namespace InternetArchive
             if (item == null)
                 return null;
 
-            var ary = item.Get<System.Collections.IEnumerable> (key);
+            object value;
+            if (!item.TryGetValue (key, out value) || value == null) return null;
+            if (value is string) return (string)value;
+            if (!(value is System.Collections.IEnumerable)) return Convert.ToString (value, CultureInfo.InvariantCulture);
+            var ary = value as System.Collections.IEnumerable;
             if (ary != null) {
                 return String.Join (with, ary.Cast<object> ().Select (o => o.ToString ()).ToArray ());
             }

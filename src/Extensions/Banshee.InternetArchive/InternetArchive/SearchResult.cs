@@ -48,7 +48,7 @@ namespace InternetArchive
         }
 
         public string WebpageUrl {
-            get { return String.Format ("http://www.archive.org/details/{0}", Id); }
+            get { return String.Format ("https://archive.org/details/{0}", Id); }
         }
 
         public DateTime DateAdded {
