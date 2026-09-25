@@ -1,0 +1,36 @@
+#!/bin/sh
+set -eu
+export XDG_CONFIG_HOME="$SNAP_USER_DATA/.config"
+export XDG_CACHE_HOME="$SNAP_USER_COMMON/.cache"
+export XDG_DATA_HOME="$SNAP_USER_DATA/.local/share"
+mkdir -p "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_DATA_HOME"
+export XDG_DATA_DIRS="$SNAP/share:$SNAP/usr/share:${XDG_DATA_DIRS:-/usr/share}"
+# GTK2 finds theme data via GTK_DATA_PREFIX, engines via GTK_PATH, and
+# icons via XDG_DATA_DIRS. Theme selection remains with desktop XSettings.
+export GTK_DATA_PREFIX="$SNAP"
+export GTK_PATH="$SNAP/lib/gtk-2.0${GTK_PATH:+:$GTK_PATH}"
+export MONO_GAC_PREFIX="$SNAP/usr"
+export MONO_CFG_DIR="$SNAP/etc"
+export GIO_MODULE_DIR="$SNAP/usr/lib/x86_64-linux-gnu/gio/modules"
+export SSL_CERT_FILE="$SNAP/etc/ssl/certs/ca-certificates.crt"
+# The desktop proxy portal rejects this confined app. Connect directly unless
+# the user explicitly selects another resolver for their proxy installation.
+export GIO_USE_PROXY_RESOLVER="${GIO_USE_PROXY_RESOLVER:-dummy}"
+export MONO_PATH="$SNAP/usr/lib/banshee:$SNAP/usr/lib/banshee/Backends:$SNAP/usr/lib/banshee/Extensions"
+# Debian normally registers these assemblies in post-install scripts, which
+# do not run when Snapcraft extracts stage packages.
+for assembly_dir in "$SNAP"/usr/lib/cli/*; do
+    [ ! -d "$assembly_dir" ] || MONO_PATH="$MONO_PATH:$assembly_dir"
+done
+export MONO_PATH
+export LD_LIBRARY_PATH="$SNAP/usr/lib/banshee:$SNAP/usr/lib/banshee/Backends:$SNAP/usr/lib/x86_64-linux-gnu/blas:$SNAP/usr/lib/x86_64-linux-gnu/lapack:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio:$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export GDK_PIXBUF_MODULEDIR="$SNAP/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders"
+export GDK_PIXBUF_MODULE_FILE="$XDG_CACHE_HOME/gdk-pixbuf-loaders-$SNAP_REVISION.cache"
+if [ ! -s "$GDK_PIXBUF_MODULE_FILE" ]; then
+    "$SNAP/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders" > "$GDK_PIXBUF_MODULE_FILE"
+fi
+export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR%/snap.$SNAP_INSTANCE_NAME}/pulse/native}"
+export GST_REGISTRY_1_0="$XDG_CACHE_HOME/gstreamer-registry-$SNAP_REVISION.bin"
+export GST_PLUGIN_SYSTEM_PATH_1_0="$SNAP/usr/lib/x86_64-linux-gnu/gstreamer-1.0"
+export GST_PLUGIN_SCANNER="$SNAP/usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner"
+exec "$SNAP/usr/bin/mono" "$SNAP/usr/lib/banshee/Banshee.exe" "$@"

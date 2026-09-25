@@ -91,3 +91,7 @@ __pycache__/
 /tools/*.exe
 /tools/gstreamer-network-probe
 /tests/*.exe
+
+# Ship the snap launcher despite upstream bin/ ignore rules.
+!snap/local/bin/
+!snap/local/bin/banshee-launch
