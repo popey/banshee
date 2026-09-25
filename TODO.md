@@ -10,6 +10,10 @@ the Git-source migration is local and awaiting validation/publication.
 
 ## Current baseline
 
+- [ ] Harden Last.fm login: handle token/browser-launch failures and preserve
+  the API-returned username. Investigate Joey's login/Archive/video reports
+  with exact reproduction details. [Investigation](docs/lastfm-report-investigation.md).
+
 - [ ] Investigate enabling GitHub Issues on `popey/banshee`: check fork
   settings, decide labels and bug-report templates, and link the tracker
   from the README and Snap Store metadata once enabled.
