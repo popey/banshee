@@ -1,8 +1,8 @@
 # Source publication plan
 
 The fork now exists. [Baseline audit](source-baseline-audit.md) verified the
-release source and all 24 patches. Resolve publication of the patched Hyena
-submodule before preparing revival commits.
+release source and all 24 patches. Hyena is now vendored in the local revival branch with its original license
+and pinned revision recorded; the JSON fix is a separate commit.
 
 Agreed 2026-09-25. First step: Alan forks
 https://github.com/BansheeMediaPlayer/banshee to `popey/banshee`, retaining

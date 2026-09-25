@@ -5,7 +5,8 @@ opt-in testing on the Snap Store, then suitable for a Linux Matters demo.
 Builds must use LXD, never destructive mode. Use upstream versions without
 local build-counter suffixes and reuse fixed artifact/log filenames (see README).
 The intended release path is 2.6.2 in stable after validation, with 2.9.1
-potentially evaluated in candidate or beta; neither is published yet.
+potentially evaluated in candidate or beta. Version 2.6.2 is published in stable;
+the Git-source migration is local and awaiting validation/publication.
 
 ## Current baseline
 
@@ -18,13 +19,14 @@ potentially evaluated in candidate or beta; neither is published yet.
 - [x] Restore D-Bus single-instance activation, MPRIS/media keys, native
   Ayatana tray actions, and track notifications; validated on Ubuntu GNOME.
 
-The build applies **23 upstream source patches**: ten carried from Ubuntu,
-and thirteen local patches (modern Mono/shell test, D-Bus disable option,
+The build applies **24 upstream source patches**: ten carried from Ubuntu,
+and fourteen local patches (modern Mono/shell test, D-Bus disable option,
 GTK file-chooser URI ownership, stable snap library folders, podcast download reliability, newer D-Bus bindings, Ayatana integration,
 the snap MPRIS desktop-entry identity, Internet Archive API compatibility,
-Last.fm API compatibility/recovery, JSON integer handling, the snap browser launcher, and automatic artwork recovery). See `patches/series`. This is a patched
+Last.fm API compatibility/recovery, JSON integer handling, the snap browser launcher, automatic artwork recovery, and first-run music selection). See
+`docs/provenance/patch-commits.json`. This is a patched
 source build, not merely a wrapper around an untouched executable.
-The vendored source tarball itself stays unchanged. Snapcraft configuration
+The revival branch contains the patched source directly. Snapcraft configuration
 and the launcher supply the confinement, bundled runtime, paths, and caches.
 
 ## P0 — next work: HTTPS and podcasts
