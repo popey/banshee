@@ -136,9 +136,7 @@ namespace Banshee.ServiceStack
 
                 Log.DebugFormat ("Registering remote object {0} ({1}) on {2}", path, o.GetType (), bus_name);
 
-                #pragma warning disable 0618
-                Bus.Session.Register (bus_name, path, o);
-                #pragma warning restore 0618
+                Bus.Session.Register (path, o);
             }
 
             return path;

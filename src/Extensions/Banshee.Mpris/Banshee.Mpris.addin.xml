@@ -8,7 +8,7 @@
     description="Control Banshee using the MPRIS D-Bus interface."
     author="John Millikin, Bertrand Lorentz"
     category="Utilities"
-    defaultEnabled="false">
+    defaultEnabled="true">
 
   <Dependencies>
     <Addin id="Banshee.Services" version="1.0" />
