@@ -31,7 +31,7 @@ using org.freedesktop.DBus;
 
 namespace Notifications {
 	[Interface ("org.freedesktop.Notifications")]
-	internal interface INotifications : Introspectable, Properties {
+	public interface INotifications : Introspectable, Properties {
 		ServerInformation ServerInformation { get; }
 		string[] Capabilities { get; }
 		void CloseNotification (uint id);
@@ -48,8 +48,8 @@ namespace Notifications {
 		Reserved = 4
 	}
 
-	internal delegate void NotificationClosedHandler (uint id, uint reason);
-	internal delegate void ActionInvokedHandler (uint id, string action);
+	public delegate void NotificationClosedHandler (uint id, uint reason);
+	public delegate void ActionInvokedHandler (uint id, string action);
 
 	public struct ServerInformation {
 		public string Name;

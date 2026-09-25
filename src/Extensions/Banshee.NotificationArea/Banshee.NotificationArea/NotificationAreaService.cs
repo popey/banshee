@@ -134,6 +134,11 @@ namespace Banshee.NotificationArea
             });
 
             actions = new BansheeActionGroup (interface_action_service, "NotificationArea");
+            actions.Add (new ActionEntry [] {
+                new ActionEntry ("ToggleWindowAction", null, Catalog.GetString ("Show/Hide Banshee"),
+                    null, Catalog.GetString ("Show or hide the player window"),
+                    delegate { elements_service.PrimaryWindow.SetVisible (!elements_service.PrimaryWindow.Visible); })
+            });
             actions.Add (new ToggleActionEntry [] {
                 new ToggleActionEntry ("ToggleNotificationsAction", null,
                     Catalog.GetString ("_Show Notifications"), null,
@@ -210,6 +215,16 @@ namespace Banshee.NotificationArea
         {
             if (Environment.OSVersion.Platform == PlatformID.Unix) {
                 try {
+                    BuildContextMenu ();
+                    menu.Remove (rating_menu_item); // Custom star widget cannot be exported by dbusmenu.
+                    notif_area = new IndicatorNotificationAreaBox (menu);
+                } catch (DllNotFoundException) {
+                    // Preserve the original backend when Ayatana is not installed.
+                }
+            }
+
+            if (notif_area == null && Environment.OSVersion.Platform == PlatformID.Unix) {
+                try {
                     notif_area = new X11NotificationAreaBox ();
                 } catch {
                 }
@@ -240,6 +255,8 @@ namespace Banshee.NotificationArea
                 notif_area.Disconnected -= OnNotificationAreaDisconnected;
                 notif_area.Activated -= OnNotificationAreaActivated;
                 notif_area.PopupMenuEvent -= OnNotificationAreaPopupMenuEvent;
+                notif_area.Dispose ();
+                notif_area = null;
             }
         }
 
@@ -347,7 +364,10 @@ namespace Banshee.NotificationArea
                         Catalog.GetString ("Still Running"),
                         Catalog.GetString ("Banshee was closed to the notification area. " +
                             "Use the <i>Quit</i> option to end your session."),
-                        image, notif_area.Widget);
+                        image);
+                    if (notif_area != null && notif_area.Widget != null) {
+                        nf.AttachToWidget (notif_area.Widget);
+                    }
                     nf.Urgency = Urgency.Low;
                     nf.Timeout = 4500;
                     nf.Show ();
@@ -470,7 +490,10 @@ namespace Banshee.NotificationArea
             try {
                 if (current_nf == null) {
                     current_nf = new Notification (current_track.DisplayTrackTitle,
-                        message, image, notif_area.Widget);
+                        message, image);
+                    if (notif_area != null && notif_area.Widget != null) {
+                        current_nf.AttachToWidget (notif_area.Widget);
+                    }
                 } else {
                     current_nf.Summary = current_track.DisplayTrackTitle;
                     current_nf.Body = message;

@@ -16,6 +16,7 @@ INSTALL_DIR = $(EXTENSIONS_INSTALL_DIR)
 
 SOURCES =  \
 	Banshee.NotificationArea/GtkNotificationAreaBox.cs \
+	Banshee.NotificationArea/IndicatorNotificationAreaBox.cs \
 	Banshee.NotificationArea/INotificationAreaBox.cs \
 	Banshee.NotificationArea/NotificationAreaService.cs \
 	Banshee.NotificationArea/TrackInfoPopup.cs \
