@@ -142,6 +142,7 @@ namespace Nereid
             Log.DebugTimerPrint (timer, "Constructed Nereid interface: {0}");
 
             base.OnShown ();
+            GLib.Idle.Add (delegate { SnapMusicSetup.Show (this); return false; });
         }
 
 #region System Overrides

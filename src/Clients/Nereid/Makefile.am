@@ -3,6 +3,7 @@ TARGET = exe
 LINK = $(REF_NEREID)
 SOURCES =  \
 	Nereid/Client.cs \
+	Nereid/SnapMusicSetup.cs \
 	Nereid/PlayerInterface.cs \
 	Nereid/ViewContainer.cs
 
