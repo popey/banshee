@@ -56,6 +56,7 @@ namespace Lastfm.Data
             try {
                 XmlElement node = root[name];
                 if (node != null) {
+                    if (name == "artist" && node["name"] != null) node = node["name"];
                     return (T) Convert.ChangeType (node.InnerText, typeof(T), CultureInfo.InvariantCulture);
                 } else if (root.HasAttribute (name)) {
                     return (T) Convert.ChangeType (root.GetAttribute (name), typeof(T));
@@ -66,7 +67,7 @@ namespace Lastfm.Data
 
         protected string GetUrl (string name)
         {
-            return Uri.UnescapeDataString (Get<string> (name));
+            return Uri.UnescapeDataString (Get<string> (name) ?? String.Empty);
         }
     }
 

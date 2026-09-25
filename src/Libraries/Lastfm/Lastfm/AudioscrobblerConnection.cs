@@ -85,6 +85,10 @@ namespace Lastfm
 
             state = State.Idle;
             this.queue = queue;
+            queue.TrackAdded += delegate(object o, EventArgs args) {
+                StartTransitionHandler ();
+            };
+
         }
 
         private void AccountUpdated (object o, EventArgs args)
@@ -101,15 +105,12 @@ namespace Lastfm
 
         public void Start ()
         {
-            if (started) {
+            if (started || String.IsNullOrEmpty (LastfmCore.Account.SessionKey)) {
                 return;
             }
 
             started = true;
             hard_failures = 0;
-            queue.TrackAdded += delegate(object o, EventArgs args) {
-                StartTransitionHandler ();
-            };
 
             queue.Load ();
             StartTransitionHandler ();
@@ -166,9 +167,6 @@ namespace Lastfm
             case State.Idle:
                 if (queue.Count > 0) {
                     state = State.NeedTransmit;
-                } else if (current_now_playing_request != null) {
-                    // Now playing info needs to be sent
-                    NowPlaying (current_now_playing_request);
                 } else {
                     StopTransitionHandler ();
                 }
@@ -202,7 +200,8 @@ namespace Lastfm
             current_scrobble_request = new LastfmRequest ("track.scrobble", RequestType.Write, ResponseFormat.Json);
             IList<IQueuedTrack> tracks = queue.GetTracks ();
 
-             for (int i = 0; i < tracks.Count; i++) {
+            int batch_count = Math.Min (50, tracks.Count);
+            for (int i = 0; i < batch_count; i++) {
                 IQueuedTrack track = tracks[i];
 
                 string str_track_number = String.Empty;
@@ -224,15 +223,10 @@ namespace Lastfm
 
             Log.DebugFormat ("Last.fm scrobbler sending '{0}'", current_scrobble_request.ToString ());
 
-            state = State.Transmitting;
-            current_async_result = current_scrobble_request.BeginSend (OnScrobbleResponse, tracks.Count);
+            // The HTTP request owns its timeout. Do not start another upload while
+            // its callback can still remove tracks from this queue.
             state = State.WaitingForResponse;
-            if (!(current_async_result.AsyncWaitHandle.WaitOne (TIME_OUT, false))) {
-                Log.Warning ("Audioscrobbler upload failed", "The request timed out and was aborted", false);
-                next_interval = DateTime.Now + new TimeSpan (0, 0, RETRY_SECONDS);
-                hard_failures++;
-                state = State.Idle;
-            }
+            current_async_result = current_scrobble_request.BeginSend (OnScrobbleResponse, batch_count);
         }
 
         private void OnScrobbleResponse (IAsyncResult ar)
@@ -244,6 +238,7 @@ namespace Lastfm
 
             } catch (Exception e) {
                 Log.Exception ("Failed to complete the scrobble request", e);
+                next_interval = DateTime.Now.AddSeconds (RETRY_SECONDS);
                 state = State.Idle;
                 return;
             }
@@ -251,35 +246,27 @@ namespace Lastfm
             JsonObject response = null;
             try {
                 response = current_scrobble_request.GetResponseObject ();
+                if (response == null) throw new InvalidOperationException ("No Last.fm response received");
             } catch (Exception e) {
                 Log.Exception ("Failed to process the scrobble response", e);
+                next_interval = DateTime.Now.AddSeconds (RETRY_SECONDS);
                 state = State.Idle;
                 return;
             }
 
             var error = current_scrobble_request.GetError ();
-            if (error == StationError.ServiceOffline || error == StationError.TemporarilyUnavailable) {
-                Log.WarningFormat ("Lastfm is temporarily unavailable: {0}", (string)response ["message"]);
-                next_interval = DateTime.Now + new TimeSpan (0, 0, RETRY_SECONDS);
+            if (error != StationError.None) {
+                Log.WarningFormat ("Last.fm scrobble failed ({0}); keeping queued tracks for retry", error);
+                next_interval = DateTime.Now.AddSeconds (RETRY_SECONDS);
                 hard_failures++;
                 state = State.Idle;
-            } else if (error != StationError.None) {
-                // TODO: If error == StationError.InvalidSessionKey,
-                // suggest to the user to (re)do the Last.fm authentication.
-                hard_failures++;
-
-                queue.RemoveInvalidTracks ();
-
-                // if there are still valid tracks in the queue then retransmit on the next interval
-                if (queue.Count > 0) {
-                    state = State.NeedTransmit;
-                } else {
-                    state = State.Idle;
-                }
             } else {
                 try {
                     var scrobbles = (JsonObject)response["scrobbles"];
                     var scrobbles_attr = (JsonObject)scrobbles["@attr"];
+                    if (Convert.ToInt32 (scrobbles_attr["accepted"]) + Convert.ToInt32 (scrobbles_attr["ignored"]) != nb_tracks_scrobbled) {
+                        throw new InvalidOperationException ("Last.fm acknowledged a different number of tracks");
+                    }
                     Log.InformationFormat ("Audioscrobbler upload succeeded: {0} accepted, {1} ignored",
                                            scrobbles_attr["accepted"], scrobbles_attr["ignored"]);
 
@@ -293,8 +280,10 @@ namespace Lastfm
                         LogIfIgnored (scrobbled_track);
                     }
                 } catch (Exception) {
-                    Log.Information ("Audioscrobbler upload succeeded but unknown response received");
-                    Log.Debug ("Response received", response.ToString ());
+                    Log.Warning ("Unrecognized Last.fm scrobble response; keeping queued tracks for retry");
+                    next_interval = DateTime.Now.AddSeconds (RETRY_SECONDS);
+                    state = State.Idle;
+                    return;
                 }
 
                 hard_failures = 0;
@@ -333,7 +322,8 @@ namespace Lastfm
         public void NowPlaying (string artist, string title, string album, double duration,
                                 int tracknum, string mbrainzid)
         {
-            if (String.IsNullOrEmpty (artist) || String.IsNullOrEmpty (title) || !connected) {
+            if (String.IsNullOrEmpty (artist) || String.IsNullOrEmpty (title) || !connected ||
+                String.IsNullOrEmpty (LastfmCore.Account.SessionKey)) {
                 return;
             }
 
@@ -368,7 +358,9 @@ namespace Lastfm
             }
             catch (Exception e) {
                 Log.Warning ("Audioscrobbler NowPlaying failed",
-                    String.Format("Failed to post NowPlaying: {0}", e), false);
+                    String.Format("Failed to post NowPlaying: {0}", e.GetType ().Name), false);
+                current_now_playing_request = null;
+                now_playing_started = false;
             }
 
         }
@@ -377,26 +369,19 @@ namespace Lastfm
         {
             try {
                 current_now_playing_request.EndSend (ar);
+                var error = current_now_playing_request.GetError ();
+                if (error == StationError.None) {
+                    Log.Debug ("Submitted NowPlaying track to Audioscrobbler");
+                } else {
+                    Log.WarningFormat ("Audioscrobbler NowPlaying failed: {0}", error);
+                }
             } catch (Exception e) {
-                Log.Exception ("Failed to complete the NowPlaying request", e);
-                state = State.Idle;
+                Log.WarningFormat ("Failed to process the NowPlaying response: {0}", e.GetType ().Name);
+            } finally {
+                // A failed update must not block updates for subsequent tracks.
                 current_now_playing_request = null;
-                return;
-            }
-
-            StationError error = current_now_playing_request.GetError ();
-
-            // API docs say "Now Playing requests that fail should not be retried".
-            if (error == StationError.InvalidSessionKey) {
-                Log.Warning ("Audioscrobbler NowPlaying failed", "Session ID sent was invalid", false);
-                // TODO: Suggest to the user to (re)do the Last.fm authentication ?
-            } else if (error != StationError.None) {
-                Log.WarningFormat ("Audioscrobbler NowPlaying failed: {0}", error.ToString ());
-            } else {
-                Log.Debug ("Submitted NowPlaying track to Audioscrobbler");
                 now_playing_started = false;
             }
-            current_now_playing_request = null;
         }
     }
 }

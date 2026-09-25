@@ -95,6 +95,8 @@ namespace Lastfm.Data
             HttpWebRequest request = (HttpWebRequest) WebRequest.Create (data_url);
             request.UserAgent = DataCore.UserAgent;
             request.KeepAlive = false;
+            request.Timeout = 20000;
+            request.ReadWriteTimeout = 20000;
 
             using (HttpWebResponse response = (HttpWebResponse) request.GetResponse ()) {
                 using (Stream stream = GetResponseStream (response)) {

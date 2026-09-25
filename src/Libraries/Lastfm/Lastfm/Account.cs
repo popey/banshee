@@ -67,7 +67,7 @@ namespace Lastfm
         }
 
         public string SignUpUrl {
-            get { return "http://www.last.fm/join"; }
+            get { return "https://www.last.fm/join"; }
         }
 
         public void SignUp ()
@@ -77,11 +77,11 @@ namespace Lastfm
 
         public void VisitUserProfile (string username)
         {
-            Browser.Open (String.Format ("http://last.fm/user/{0}", username));
+            Browser.Open (String.Format ("https://www.last.fm/user/{0}", Uri.EscapeDataString (username)));
         }
 
         public string HomePageUrl {
-            get { return "http://www.last.fm/"; }
+            get { return "https://www.last.fm/"; }
         }
 
         public void VisitHomePage ()
@@ -104,11 +104,11 @@ namespace Lastfm
                 object error_code;
                 if (response.TryGetValue ("error", out error_code)) {
                     Log.WarningFormat ("Lastfm error {0} : {1}", (int)error_code, (string)response["message"]);
-                    return (StationError) error_code;
+                    return (StationError) Convert.ToInt32 (error_code);
                 }
 
                 authentication_token = (string)response["token"];
-                Browser.Open (String.Format ("http://www.last.fm/api/auth?api_key={0}&token={1}", LastfmCore.ApiKey, authentication_token));
+                Browser.Open (String.Format ("https://www.last.fm/api/auth?api_key={0}&token={1}", LastfmCore.ApiKey, authentication_token));
 
                 return StationError.None;
             } catch (Exception e) {
@@ -131,7 +131,7 @@ namespace Lastfm
                 object error_code;
                 if (response.TryGetValue ("error", out error_code)) {
                     Log.WarningFormat ("Lastfm error {0} : {1}", (int)error_code, (string)response["message"]);
-                    return (StationError) error_code;
+                    return (StationError) Convert.ToInt32 (error_code);
                 }
 
                 var session = (Hyena.Json.JsonObject)response["session"];

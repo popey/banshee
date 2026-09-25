@@ -108,6 +108,11 @@ namespace Banshee.Lastfm.Audioscrobbler
             connection.UpdateNetworkState (network.Connected);
             network.StateChanged += HandleNetworkStateChanged;
 
+            // Resume a persisted queue without requiring another completed track.
+            if (Enabled && !String.IsNullOrEmpty (account.SessionKey)) {
+                connection.Start ();
+            }
+
             // Update the Visit action menu item if we update our account info
             LastfmCore.Account.Updated += delegate (object o, EventArgs args) {
                 actions["AudioscrobblerVisitAction"].Sensitive = String.IsNullOrEmpty (LastfmCore.Account.UserName);
@@ -353,6 +358,11 @@ namespace Banshee.Lastfm.Audioscrobbler
             set {
                 EngineEnabledSchema.Set (value);
                 ((ToggleAction) actions["AudioscrobblerEnableAction"]).Active = value;
+                if (value) {
+                    connection.Start ();
+                } else {
+                    connection.Stop ();
+                }
             }
         }
 

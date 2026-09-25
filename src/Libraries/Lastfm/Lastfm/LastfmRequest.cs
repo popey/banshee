@@ -56,7 +56,7 @@ namespace Lastfm
 
     public class LastfmRequest
     {
-        private const string API_ROOT = "http://ws.audioscrobbler.com/2.0/";
+        private const string API_ROOT = "https://ws.audioscrobbler.com/2.0/";
 
         private Dictionary<string, string> parameters = new Dictionary<string, string> ();
         private Stream response_stream;
@@ -76,20 +76,20 @@ namespace Lastfm
         }
 
         private string method;
-        public string Method { get; set; }
+        public string Method { get { return method; } set { method = value; } }
 
 
         private RequestType request_type;
-        public RequestType RequestType { get; set; }
+        public RequestType RequestType { get { return request_type; } set { request_type = value; } }
 
 
         private ResponseFormat response_format;
-        public ResponseFormat ResponseFormat { get; set; }
+        public ResponseFormat ResponseFormat { get { return response_format; } set { response_format = value; } }
 
 
         public void AddParameter (string param_name, string param_value)
         {
-            parameters.Add (param_name, param_value);
+            parameters[param_name] = param_value ?? String.Empty;
         }
 
         public Stream GetResponseStream ()
@@ -99,6 +99,8 @@ namespace Lastfm
 
         public void Send ()
         {
+            response_string = null;
+            response_stream = null;
             if (method == null) {
                 throw new InvalidOperationException ("The method name should be set");
             }
@@ -167,18 +169,18 @@ namespace Lastfm
                 // XML reply indicates an error
                 Match match = Regex.Match (response_string, "<error code=\"(\\d+)\">");
                 if (match.Success) {
-                    error = (StationError) Int32.Parse (match.Value);
+                    error = (StationError) Int32.Parse (match.Groups[1].Value);
                     Log.WarningFormat ("Lastfm error {0}", error);
                 } else {
                     error = StationError.Unknown;
                 }
             }
-            if (response_format == ResponseFormat.Json && response_string.Contains ("\"error\":")) {
+            if (response_format == ResponseFormat.Json) {
                 // JSON reply indicates an error
                 Deserializer deserializer = new Deserializer (response_string);
                 JsonObject json = deserializer.Deserialize () as JsonObject;
                 if (json != null && json.ContainsKey ("error")) {
-                    error = (StationError) json["error"];
+                    error = (StationError) Convert.ToInt32 (json["error"]);
                     Log.WarningFormat ("Lastfm error {0} : {1}", error, (string)json["message"]);
                 }
             }
@@ -189,7 +191,7 @@ namespace Lastfm
         private string BuildGetUrl ()
         {
             if (request_type == RequestType.AuthenticatedRead) {
-                parameters.Add ("sk", LastfmCore.Account.SessionKey);
+                parameters["sk"] = LastfmCore.Account.SessionKey;
             }
 
             StringBuilder url = new StringBuilder (API_ROOT);
@@ -207,7 +209,7 @@ namespace Lastfm
 
         private string BuildPostData ()
         {
-            parameters.Add ("sk", LastfmCore.Account.SessionKey);
+            parameters["sk"] = LastfmCore.Account.SessionKey;
 
             StringBuilder data = new StringBuilder ();
             data.AppendFormat ("method={0}", method);
@@ -236,7 +238,7 @@ namespace Lastfm
             }
             StringBuilder signature = new StringBuilder ();
             foreach (var parm in sorted_params) {
-                if (parm.Key.Equals ("format")) {
+                if (parm.Key.Equals ("format") || parm.Key.Equals ("raw")) {
                     continue;
                 }
                 signature.Append (parm.Key);
@@ -253,7 +255,9 @@ namespace Lastfm
 
             sb.Append (method);
             foreach (KeyValuePair<string, string> param in parameters) {
-                sb.AppendFormat ("\n\t{0}={1}", param.Key, param.Value);
+                bool secret = param.Key == "sk" || param.Key == "token" || param.Key == "api_key" ||
+                    param.Key == "api_sig" || param.Key == "password";
+                sb.AppendFormat ("\n\t{0}={1}", param.Key, secret ? "[redacted]" : param.Value);
             }
             return sb.ToString ();
         }
@@ -289,7 +293,7 @@ namespace Lastfm
             try {
                 response = (HttpWebResponse) request.GetResponse ();
             } catch (WebException e) {
-                Log.DebugException (e);
+                Log.DebugFormat ("Last.fm HTTP request failed: {0}", e.Status);
                 response = (HttpWebResponse)e.Response;
             }
             return response != null ? response.GetResponseStream () : null;
@@ -297,8 +301,10 @@ namespace Lastfm
 
         private Stream Post (string uri, string data)
         {
-            // Do not trust docs : it doesn't work if parameters are in the request body
-            HttpWebRequest request = (HttpWebRequest) WebRequest.Create (String.Concat (uri, "?", data));
+            HttpWebRequest request = (HttpWebRequest) WebRequest.Create (uri);
+            byte[] body = Encoding.UTF8.GetBytes (data);
+            request.ContentLength = body.Length;
+            request.AllowAutoRedirect = false;
             request.UserAgent = LastfmCore.UserAgent;
             request.Timeout = 10000;
             request.Method = "POST";
@@ -307,9 +313,12 @@ namespace Lastfm
 
             HttpWebResponse response = null;
             try {
+                using (Stream stream = request.GetRequestStream ()) {
+                    stream.Write (body, 0, body.Length);
+                }
                 response = (HttpWebResponse) request.GetResponse ();
             } catch (WebException e) {
-                Log.DebugException (e);
+                Log.DebugFormat ("Last.fm HTTP request failed: {0}", e.Status);
                 response = (HttpWebResponse)e.Response;
             }
             return response != null ? response.GetResponseStream () : null;

@@ -64,7 +64,7 @@ namespace Lastfm.Data
                 return (LastfmData<T>) cache [fragment];
             }
 
-            LastfmData<T> obj = new LastfmData<T> (String.Format ("user/{0}/{1}", username, fragment), xpath);
+            LastfmData<T> obj = new LastfmData<T> (String.Format ("user/{0}/{1}", Uri.EscapeDataString (username), fragment), xpath);
             cache [fragment] = obj;
             return obj;
         }

@@ -42,7 +42,8 @@ namespace Lastfm.Data
         public DataEntryCollection (XmlDocument doc)
         {
             XmlNode node = doc.ChildNodes [doc.ChildNodes.Count - 1];
-            nodes = (node.Name == "rss") ? node.SelectNodes ("channel/items") : node.ChildNodes;
+            if (node.Name == "lfm") node = node.SelectSingleNode ("*");
+            nodes = (node.Name == "rss") ? node.SelectNodes ("channel/items") : node.SelectNodes ("*");
             count = nodes.Count;
         }
 

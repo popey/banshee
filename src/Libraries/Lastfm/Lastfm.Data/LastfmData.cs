@@ -75,7 +75,7 @@ namespace Lastfm.Data
         {
             DataCore.Initialize ();
 
-            this.data_url = DataCore.FixLastfmUrl (String.Format ("http://ws.audioscrobbler.com/1.0/{0}", dataUrlFragment));
+            this.data_url = BuildDataUrl (dataUrlFragment);
             this.cache_file = DataCore.GetCachedPathFromUrl (data_url);
             this.cache_duration = cacheDuration;
             this.xpath = xpath;
@@ -85,6 +85,36 @@ namespace Lastfm.Data
             } catch {
                 Refresh ();
             }
+        }
+
+        private static string BuildDataUrl (string fragment)
+        {
+            string[] parts = fragment.Split (new char[] { '/' }, 3);
+            if (parts.Length != 3) throw new ArgumentException ("Invalid Last.fm data request");
+            string[] resource = parts[2].Split ('?');
+            string endpoint = resource[0].Replace (".xml", "");
+            string method;
+            switch (endpoint) {
+                case "similar": method = "getSimilar"; break;
+                case "recentlovedtracks": method = "getLovedTracks"; break;
+                case "recenttracks": method = "getRecentTracks"; break;
+                case "topartists": method = "getTopArtists"; break;
+                case "topalbums": method = "getTopAlbums"; break;
+                case "toptracks": method = "getTopTracks"; break;
+                case "toptags": case "tags": method = "getTopTags"; break;
+                case "profile": method = "getInfo"; break;
+                case "friends": method = "getFriends"; break;
+                case "weeklychartlist": method = "getWeeklyChartList"; break;
+                case "weeklyartistchart": method = "getWeeklyArtistChart"; break;
+                default: throw new NotSupportedException ("This legacy Last.fm feature is no longer supported: " + endpoint);
+            }
+            string url = "https://ws.audioscrobbler.com/2.0/?method=" + parts[0] + "." + method +
+                "&api_key=" + LastfmCore.ApiKey + "&" + parts[0] + "=" + parts[1];
+            if (resource.Length > 1) {
+                var query = HttpUtility.ParseQueryString (resource[1]);
+                if (query["type"] != null) url += "&period=" + Uri.EscapeDataString (query["type"]);
+            }
+            return url;
         }
 
         public void Refresh ()
@@ -105,11 +135,19 @@ namespace Lastfm.Data
 
             XmlReaderSettings settings = new XmlReaderSettings ();
             settings.CheckCharacters = false;
+            settings.DtdProcessing = DtdProcessing.Prohibit;
+            settings.XmlResolver = null;
 
             using (XmlReader reader = XmlReader.Create (cache_file, settings)) {
                 doc.Load (reader);
             }
 
+            if (doc.DocumentElement.Name == "lfm") {
+                if (doc.DocumentElement.GetAttribute ("status") != "ok") {
+                    throw new InvalidDataException ("Last.fm returned an API error");
+                }
+                if (xpath == "profile") xpath = "/lfm/user";
+            }
             if (xpath == null) {
                 collection = new DataEntryCollection<T> (doc);
             } else {
