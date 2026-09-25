@@ -216,49 +216,51 @@ namespace Hyena.Json
         private object LexNumber (out bool isDouble)
         {
             isDouble = false;
-            int  intVal = 0;
-            double doubleVal = 0.0;
-            bool negate = peek == '-';
-            if (negate) {
+            var number = new StringBuilder ();
+            if (peek == '-') {
+                number.Append (peek);
                 ReadChar ();
             }
-
-            if (peek != '0') {
-                doubleVal = intVal = LexInt ();
+            if (!Char.IsDigit (peek)) InvalidSyntax ("Expected a digit");
+            if (peek == '0') {
+                number.Append (peek);
+                ReadChar ();
+                if (Char.IsDigit (peek)) InvalidSyntax ("Leading zero in number");
             } else {
-                ReadChar ();
-            }
-
-            if (peek == '.') {
-                isDouble = true;
-                doubleVal += LexFraction ();
-            }
-
-            if (peek == 'e' || peek == 'E') {
-                isDouble = true;
-                ReadChar ();
-                if (peek == '-') {
+                while (Char.IsDigit (peek)) {
+                    number.Append (peek);
                     ReadChar ();
-                    doubleVal /= Math.Pow (10, LexInt ());
-                } else if (peek == '+') {
-                    ReadChar ();
-                    doubleVal *= Math.Pow (10, LexInt ());
-                } else if (Char.IsDigit (peek)) {
-                    doubleVal *= Math.Pow (10, LexInt ());
-                } else {
-                    InvalidSyntax ("Malformed exponent");
                 }
             }
-
-            if (Char.IsDigit (peek)) {
-                InvalidSyntax ("Numbers starting with 0 must be followed by a . or not " +
-                    "followed by a digit (octal syntax not legal)");
+            if (peek == '.') {
+                isDouble = true;
+                number.Append (peek);
+                ReadChar ();
+                if (!Char.IsDigit (peek)) InvalidSyntax ("Expected a fractional digit");
+                while (Char.IsDigit (peek)) {
+                    number.Append (peek);
+                    ReadChar ();
+                }
             }
-
-            if (!isDouble)
-                return negate ? -1 * intVal : intVal;
-            else
-                return negate ? -1.0 * doubleVal : doubleVal;
+            if (peek == 'e' || peek == 'E') {
+                isDouble = true;
+                number.Append (peek);
+                ReadChar ();
+                if (peek == '+' || peek == '-') {
+                    number.Append (peek);
+                    ReadChar ();
+                }
+                if (!Char.IsDigit (peek)) InvalidSyntax ("Malformed exponent");
+                while (Char.IsDigit (peek)) {
+                    number.Append (peek);
+                    ReadChar ();
+                }
+            }
+            if (isDouble) return Double.Parse (number.ToString (), System.Globalization.CultureInfo.InvariantCulture);
+            long integer = Int64.Parse (number.ToString (), System.Globalization.CultureInfo.InvariantCulture);
+            // Preserve the boxed Int32 type expected by existing API consumers.
+            if (integer >= Int32.MinValue && integer <= Int32.MaxValue) return (int)integer;
+            return integer;
         }
 
         public Token Scan ()
