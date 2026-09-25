@@ -80,6 +80,33 @@ namespace Migo.DownloadCore
 	        }
 	    }
 
+        public string ErrorMessage { get; private set; }
+
+        private void SetErrorMessage (Exception exception)
+        {
+            var web = exception as WebException;
+            if (web != null) {
+                var response = web.Response as HttpWebResponse;
+                if (response != null) {
+                    ErrorMessage = "The server returned HTTP " + (int) response.StatusCode + ".";
+                } else if (web.Status == WebExceptionStatus.TrustFailure || web.Status == WebExceptionStatus.SecureChannelFailure) {
+                    ErrorMessage = "The server's TLS certificate could not be verified.";
+                } else if (web.Status == WebExceptionStatus.Timeout) {
+                    ErrorMessage = "The download timed out.";
+                } else if (web.Status == WebExceptionStatus.NameResolutionFailure) {
+                    ErrorMessage = "The server name could not be resolved.";
+                } else {
+                    ErrorMessage = "The network connection failed or was interrupted.";
+                }
+            } else if (exception is UnauthorizedAccessException) {
+                ErrorMessage = "Permission denied when writing the download folder.";
+            } else if (exception is IOException) {
+                ErrorMessage = "The download could not be read or written completely. Check disk space and retry.";
+            } else {
+                ErrorMessage = "The download could not be completed.";
+            }
+        }
+
         public HttpFileDownloadErrors Error
         {
             get { return error; }
@@ -237,6 +264,8 @@ namespace Migo.DownloadCore
         private void ExecuteImpl ()
         {
             Exception err = null;
+            error = HttpFileDownloadErrors.None;
+            ErrorMessage = null;
             bool fileOpenError = false;
 
             try {
@@ -266,7 +295,9 @@ namespace Migo.DownloadCore
             }
 
             if (err != null) {
-                //Console.WriteLine ("DT:  {0}", err.Message);
+                SetErrorMessage (err);
+                executing = false;
+                SetCompleted ();
 
                 if (!fileOpenError) {
                     CloseLocalStream (true);
@@ -276,6 +307,7 @@ namespace Migo.DownloadCore
 
                 SetStatus (TaskStatus.Failed);
                 OnTaskCompleted (err, false);
+                if (mre != null) mre.Set ();
             }
         }
 	
@@ -364,10 +396,11 @@ namespace Migo.DownloadCore
         {
             if (File.Exists (localPath)) {
                 localStream = File.Open (
-                    localPath, FileMode.Append,
+                    localPath, FileMode.Open,
                     FileAccess.Write, FileShare.None
                 );
 
+                localStream.Seek (0, SeekOrigin.End);
                 preexistingFile = true;
             } else {
                 preexistingFile = false;
@@ -419,7 +452,9 @@ namespace Migo.DownloadCore
 	
                 try {
                     if (e.Error != null) {
-                        Hyena.Log.WarningFormat ("HttpDownloadTask {0} Error: {1}", this.Name, e.Error);
+                        SetErrorMessage (e.Error);
+                        // Keep signed URLs and credentials out of logs.
+                        Hyena.Log.Warning ("Podcast download failed", ErrorMessage);
                         WebException we = e.Error as WebException;
 
                         if (we != null) {
@@ -467,6 +502,8 @@ namespace Migo.DownloadCore
                     if (retry) {
                         CloseLocalStream (true);
                         DestroyWebClient ();
+                        modified = 0;
+                        executing = true;
                         ExecuteImpl ();
                     } else if (SetCompleted ()) {
                         switch (newStatus) {
@@ -515,9 +552,15 @@ namespace Migo.DownloadCore
 
                     httpStatus = wc.Response.StatusCode;
 
-                    if (preexistingFile &&
+                    // A server may ignore Range and return the entire file.
+                    // Discard the partial file and retry once, never append it.
+                    string content_range = wc.ResponseHeaders.Get ("Content-Range");
+                    bool invalid_range = preexistingFile && localStream.Length > 0 &&
+                        (httpStatus != HttpStatusCode.PartialContent || content_range == null ||
+                         !content_range.StartsWith ("bytes " + localStream.Length + "-", StringComparison.Ordinal));
+                    if (invalid_range || (preexistingFile && wc.ResponseHeaders.Get ("Last-Modified") != null &&
                         wc.Response.LastModified.ToUniversalTime () >
-                        File.GetLastWriteTimeUtc (localPath)) {
+                        File.GetLastWriteTimeUtc (localPath))) {
                         ++modified;
 
                         wc.CancelAsync ();

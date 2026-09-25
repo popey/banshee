@@ -115,9 +115,14 @@ namespace Migo.Syndication
             Provider.Delete (this);
         }
 
+        public string DownloadErrorMessage { get; set; }
+
         public void AsyncDownload ()
         {
-            if (DownloadedAt == DateTime.MinValue && DownloadStatus == FeedDownloadStatus.None) {
+            if (String.IsNullOrEmpty (LocalPath) &&
+                (DownloadStatus == FeedDownloadStatus.None || DownloadStatus == FeedDownloadStatus.DownloadFailed)) {
+                DownloadErrorMessage = null;
+                LastDownloadError = FeedDownloadError.None;
                 Manager.QueueDownload (this);
             }
         }

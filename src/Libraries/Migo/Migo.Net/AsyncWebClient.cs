@@ -582,7 +582,8 @@ namespace Migo.Net
         // and put in a helper class.
         private void Download (Stream st)
         {
-            long cLength = (response.ContentLength + range);
+            long cLength = response.ContentLength < 0 ? -1 : response.ContentLength + range;
+            long received = 0;
 
             if (cLength == 0) {
                 return;
@@ -649,6 +650,7 @@ namespace Migo.Net
                 // need an auxiliary downloader class to replace this.
                 // </hack>
 
+                received += nread;
                 readTimeoutHandle.Set ();
 
                 if (writeToStream) {
@@ -664,6 +666,9 @@ namespace Migo.Net
             }
 
             CleanUpHandles ();
+            if (response.ContentLength >= 0 && received != response.ContentLength) {
+                throw new IOException ("Incomplete HTTP response");
+            }
 
             if (type != DownloadType.String) {
                 if (tsm.TotalBytes == -1) {

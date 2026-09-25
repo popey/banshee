@@ -316,7 +316,10 @@ namespace Migo.Syndication
 
             if (enc != null) {
                 if (args.Error != null || task.Status == TaskStatus.Failed) {
+                    enc.DownloadErrorMessage = task.ErrorMessage;
+                    enc.LastDownloadError = FeedDownloadError.DownloadFailed;
                     enc.DownloadStatus = FeedDownloadStatus.DownloadFailed;
+                    enc.Save ();
                 } else if (!args.Cancelled) {
                     if (task.Status == TaskStatus.Succeeded) {
                         try {
@@ -327,7 +330,10 @@ namespace Migo.Syndication
                                 Path.GetFileName (task.LocalPath)
                             );
                         } catch (Exception e) {
-                            Log.Exception (e);
+                            enc.DownloadErrorMessage = e is UnauthorizedAccessException
+                                ? "Permission denied when saving the episode. Check the podcast folder."
+                                : "The downloaded episode could not be saved. Check the podcast folder and disk space.";
+                            Log.Warning ("Podcast save failed", enc.DownloadErrorMessage);
                             enc.LastDownloadError = FeedDownloadError.DownloadFailed;
                             enc.DownloadStatus = FeedDownloadStatus.DownloadFailed;
                             enc.Save ();

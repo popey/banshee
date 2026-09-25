@@ -451,12 +451,28 @@ namespace Banshee.Podcasting
 
         internal static bool IgnoreItemChanges = false;
 
+        private Banshee.Sources.SourceMessage download_error_message;
+
         private void OnItemChanged (FeedItem item)
         {
             if (IgnoreItemChanges) {
                 return;
             }
 
+            if (item.Enclosure != null && item.Enclosure.DownloadStatus == FeedDownloadStatus.DownloadFailed &&
+                !String.IsNullOrEmpty (item.Enclosure.DownloadErrorMessage)) {
+                string detail = item.Enclosure.DownloadErrorMessage;
+                item.Enclosure.DownloadErrorMessage = null;
+                ThreadAssist.ProxyToMain (() => {
+                    if (download_error_message != null) source.RemoveMessage (download_error_message);
+                    download_error_message = new Banshee.Sources.SourceMessage (source) {
+                        CanClose = true,
+                        Text = detail + " Select the episode and choose Download to retry."
+                    };
+                    download_error_message.SetIconName ("dialog-error");
+                    source.PushMessage (download_error_message);
+                });
+            }
             DatabaseTrackInfo track = GetTrackByItemId (item.DbId);
             if (track != null) {
                 PodcastTrackInfo pi = track.ExternalObject as PodcastTrackInfo;
