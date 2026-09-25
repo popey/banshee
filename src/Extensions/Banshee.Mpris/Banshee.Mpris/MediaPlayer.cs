@@ -131,7 +131,10 @@ namespace Banshee.Mpris
         }
 
         public string DesktopEntry {
-            get { return "banshee"; }
+            get {
+                string instance = Environment.GetEnvironmentVariable ("SNAP_INSTANCE_NAME");
+                return String.IsNullOrEmpty (instance) ? "banshee" : instance + "_banshee";
+            }
         }
 
         // This is just a list of commonly supported MIME types.
