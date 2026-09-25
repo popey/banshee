@@ -74,3 +74,20 @@ build/windows/generated_share.wxi
 build/windows/generated_binaries.wxi
 build/windows/*.wixpdb
 build/windows/*.msi
+
+# Revival packaging artifacts and private local configuration
+/parts/
+/stage/
+/prime/
+/*.snap
+/.env
+/.env.*
+*.log
+mono_crash*
+/core
+/test-media/
+/test-runtime/
+__pycache__/
+/tools/*.exe
+/tools/gstreamer-network-probe
+/tests/*.exe

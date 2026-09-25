@@ -1,0 +1,122 @@
+[
+  {
+    "patch": "Add-dllmaps-for-Banshee.NowPlaying.X11.dll.patch",
+    "commit": "f33dae49c225236dc56859bd6f06ff817095243a",
+    "sha256": "a750162c73651df1ab3d098478da0b71c2bca540fbf65e9b6694ef37aeb190b6"
+  },
+  {
+    "patch": "Initial-port-to-GStreamer-1.0.patch",
+    "commit": "739f99acc2cef292e5dff82b2141ff964894c58f",
+    "sha256": "dc09e5f0193c46d2c2f17d0e2d7a0fec4adc62c63ef080ef1a312ba784e236c1"
+  },
+  {
+    "patch": "Remove-build-time-enable-gapless-playback-option.patch",
+    "commit": "2a8819de76d20cf711bbe2eb9d02444569fafbde",
+    "sha256": "4a48d389b9d6fc6673551e51995ad02916f2be1551b7118d33eff2e4b30b101d"
+  },
+  {
+    "patch": "Don-t-use-the-new-decoded-pad-signal-of-decodebin.patch",
+    "commit": "ec3223f87d73e6e9981ffdf3ffa39315394f6652",
+    "sha256": "f478600413e15a912170d04fabd1be96781b37a4c1b74876111f31f8adce91a5"
+  },
+  {
+    "patch": "Use-new-style-GStreamer-1.0-raw-audio-caps-in-the-WA.patch",
+    "commit": "55af32b8225046b3d0c96d0bd5850c40c4cfa00e",
+    "sha256": "20a6004ea6af778e3b3fbbcd128e79f29558ff80dc535f345d372d9a5816a17e"
+  },
+  {
+    "patch": "Remove-IDBusExportable-inheritance-from-exported-int.patch",
+    "commit": "c745944bf81a7cee7932c3ecc6ec67c8188251f8",
+    "sha256": "2605b4bb89a6909c626d84b67b674ba14b033e92a1f008f24349e54a2a7fcf1d"
+  },
+  {
+    "patch": "Database-fix-performance-for-the-new-SQLite-s-query-.patch",
+    "commit": "f35318d40f8ef3d1af9042f014a5db2f75a37af5",
+    "sha256": "652158f3e4ed8dac55f76583213e43e262e111fe632e8153560fe54be17248f7"
+  },
+  {
+    "patch": "Fix-sqlite-likelihood_support-detection.patch",
+    "commit": "fc103bbf24d11c67035fc474523615e8736a60a7",
+    "sha256": "a9e7885c8d0c9ba18febc73772a00a15f517763325c3ce5e78bb4cebb689e896"
+  },
+  {
+    "patch": "build-Remove-obsolete-check-for-gnome-desktop-2.0-2..patch",
+    "commit": "260350a5c9b4070d611cba67b1a77f1de6770803",
+    "sha256": "31ecb48329c8f78b22b5431c5b2e0350024331e73737a9f8052b43d80b5d002a"
+  },
+  {
+    "patch": "mono-4.5.patch",
+    "commit": "69dbc519efcd7083be622066bafaab4eab7278e2",
+    "sha256": "3aab735acbf8c6b7a606afb425c555fb6b53f491e4c783cc1a37ae7c26e2af92"
+  },
+  {
+    "patch": "modern-mono.patch",
+    "commit": "322fddfb86d7ea854701116d03e46cb2eb4d0e06",
+    "sha256": "aed4f5bd2435878119b0c32d0b9c0456f38bf952eb444992acd75444dc335ebd"
+  },
+  {
+    "patch": "respect-disable-dbus.patch",
+    "commit": "5f16651051d48d57089481e929f5e0c675642749",
+    "sha256": "24cd3fe76ccfdd2e730ff8c57f3e804d8083aa046c12e1b4f048f4cdc2274865"
+  },
+  {
+    "patch": "gtk-file-chooser-marshalling.patch",
+    "commit": "7ac934dbd9471682149bf87168335786376898f6",
+    "sha256": "5d5a9fb68aef250c02818e2eb85aa01f7c4f84d45c719cd4da0883c07b95306e"
+  },
+  {
+    "patch": "snap-library-paths.patch",
+    "commit": "19b5844a78b1ffd33c3544b04d410b2270c0225e",
+    "sha256": "25be8825f202c40f7cd67d7507909cb2d091850b21dee082634289ab88a1e14b"
+  },
+  {
+    "patch": "podcast-download-reliability.patch",
+    "commit": "1535fc71ec2b8d1cb5a4d28c60d19a1c97178445",
+    "sha256": "175717f3346bb3453c136dd353f3a50a3c6435b1cb2f533ecc828f1eb8d8d3a6"
+  },
+  {
+    "patch": "dbus-sharp2.patch",
+    "commit": "bfaed42a4d737e5fc92cab48d984d41c4cd09147",
+    "sha256": "8bc27bd8ed7ac08eac16cbac88b5f9d397425edf5c5769850b19962bd21ed584"
+  },
+  {
+    "patch": "ayatana-notification-area.patch",
+    "commit": "ce27c2ce5ab8cfb05f9f9fc0bd24fd8c63038cc0",
+    "sha256": "5ce83be7da834f65c56a9dfb509e59f3328efdde40ad818404707b6a61a8e601"
+  },
+  {
+    "patch": "mpris-snap-desktop-entry.patch",
+    "commit": "d877316fa9b833d2df896ce1ecd699d581ed9479",
+    "sha256": "b2037299653f2f3b9431bcf843b8a6427eca84d785a8da71ea9b88df97db1c7b"
+  },
+  {
+    "patch": "internet-archive-api.patch",
+    "commit": "a461fd3e47d5f61dd2fd93f723e54062d82fe5d0",
+    "sha256": "42f6bf9cde6b35cf7dce9a9be1bf59fd3c5963f89b7c2cd803e27011ece10d60"
+  },
+  {
+    "patch": "lastfm-api.patch",
+    "commit": "229a7622e36dacecef9e10d4af8edc6adaba5d61",
+    "sha256": "c60f553dc27166dff32a580f9003f35cbb7bd4605b050d69a03aa0e96b01fecf"
+  },
+  {
+    "patch": "hyena-json-numbers.patch",
+    "commit": "4b4115318efc24132b40285ccf7d6167cf843c22",
+    "sha256": "705b4043ea96d4c48dac454709a963e3d6fb4ad81c131678ae28f73d42174279"
+  },
+  {
+    "patch": "snap-browser-launch.patch",
+    "commit": "bce047a84e16b1cc7a8cddfe1a4375c2048d3a97",
+    "sha256": "be9dbd35ec8f13ef12d59d30168c7c6687a614d853a5f80e4d364829284c8ece"
+  },
+  {
+    "patch": "artwork-reliability.patch",
+    "commit": "5f466fb2e994fb171998e83b978a2615e526c360",
+    "sha256": "18be82d805a3d982cd6ff77b90f3d34ab8b79200f3349784d3075920ceb34c97"
+  },
+  {
+    "patch": "snap-music-setup.patch",
+    "commit": "052c39493960cf92b21a9b8c31a7ff184dfdc3cc",
+    "sha256": "a813a0fc7c25287d12e4932b5b23c103299e9d5d01ff66c1a1015e0be07005ca"
+  }
+]

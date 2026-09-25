@@ -1,0 +1,158 @@
+name: banshee
+base: core22
+version: '2.6.2'
+title: Banshee
+summary: The classic Mono music library and player
+description: |
+  A preservation build of Banshee 2.6.2, with its classic GTK interface,
+  music library, playlists and GStreamer playback. Includes the Mono runtime.
+  This is an unofficial community packaging effort.
+grade: stable
+confinement: strict
+license: MIT
+architectures:
+  - build-on: amd64
+
+# GTK# dllmaps contain absolute paths to their native glue libraries.
+layout:
+  /usr/lib/cli:
+    bind: $SNAP/usr/lib/cli
+  # Mono resolves its machine trust store independently of MONO_CFG_DIR.
+  /usr/share/.mono:
+    bind: $SNAP/etc/mono/certstore
+
+plugs:
+  gtk-2-themes:
+    interface: content
+    target: $SNAP/share/themes
+    default-provider: gtk-common-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/share/icons
+    default-provider: gtk-common-themes
+  gtk-2-engines:
+    interface: content
+    target: $SNAP/lib/gtk-2.0
+    default-provider: gtk2-common-themes
+
+slots:
+  banshee-dbus:
+    interface: dbus
+    bus: session
+    name: org.bansheeproject.Banshee
+  banshee-indexer:
+    interface: dbus
+    bus: session
+    name: org.bansheeproject.CollectionIndexer
+  mpris:
+    interface: mpris
+    name: banshee
+
+apps:
+  banshee:
+    command: bin/banshee-launch
+    environment:
+      XDG_PODCASTS_DIR: $SNAP_USER_COMMON/Podcasts
+    desktop: usr/share/applications/banshee.desktop
+    slots: [banshee-dbus, banshee-indexer, mpris]
+    plugs: [home, removable-media, audio-playback, desktop, desktop-legacy, unity7, x11, opengl, network, gtk-2-themes, icon-themes, gtk-2-engines]
+
+parts:
+  certificates:
+    plugin: nil
+    build-packages: [ca-certificates, ca-certificates-mono]
+    stage-packages: [ca-certificates]
+    override-build: |
+      # Stage-package extraction does not execute certificate postinst hooks.
+      export PATH=/usr/bin:/bin:$PATH
+      export MONO_CFG_DIR=/etc
+      export XDG_CONFIG_HOME="$CRAFT_PART_BUILD/certificate-config"
+      cert-sync --user /etc/ssl/certs/ca-certificates.crt
+      mkdir -p "$CRAFT_PART_INSTALL/etc/mono/certstore"
+      cp -a "$XDG_CONFIG_HOME/.mono/." "$CRAFT_PART_INSTALL/etc/mono/certstore/"
+      mkdir -p "$CRAFT_PART_INSTALL/etc/ssl/certs"
+      cp /etc/ssl/certs/ca-certificates.crt "$CRAFT_PART_INSTALL/etc/ssl/certs/"
+  banshee:
+    plugin: autotools
+    source: .
+    build-packages:
+      - mono-devel
+      - shared-mime-info
+      - intltool
+      - pkg-config
+      - libtool
+      - libgtk2.0-dev
+      - libgtk2.0-cil-dev
+      - libglib2.0-cil-dev
+      - libdbus2.0-cil-dev
+      - libdbus-glib2.0-cil-dev
+      - libmono-addins-cil-dev
+      - libtaglib-cil-dev
+      - libsqlite3-dev
+      - libgstreamer1.0-dev
+      - libgstreamer-plugins-base1.0-dev
+      - libxrandr-dev
+      - libxxf86vm-dev
+    override-build: |
+      # Source fixes are committed on the revival branch.
+      export PATH=/usr/bin:/bin:$PATH
+      export MONO_CFG_DIR=/etc
+      NOCONFIGURE=1 ./autogen.sh
+      craftctl default
+      update-mime-database "$CRAFT_PART_INSTALL/usr/share/mime"
+      sed -i 's|^Icon=media-player-banshee$|Icon=/usr/share/icons/hicolor/48x48/apps/media-player-banshee.png|' "$CRAFT_PART_INSTALL/usr/share/applications/banshee.desktop"
+    autotools-configure-parameters:
+      - --prefix=/usr
+      - --libdir=/usr/lib
+      - --disable-static
+      - --disable-gnome
+      - --disable-gio
+      - --disable-gio-hardware
+      - --disable-webkit
+      - --disable-youtube
+      - --disable-boo
+      - --disable-docs
+      - --disable-user-help
+      - --disable-tests
+      - --disable-daap
+      - --disable-appledevice
+      - --disable-mtp
+      - --disable-karma
+      - --disable-upnp
+      - --enable-release
+      - MCS=/usr/bin/mono-csc
+      - MONO=/usr/bin/mono
+    prime:
+      - -usr/lib/x86_64-linux-gnu/caca/libgl_plugin.so*
+    stage-packages:
+      - mono-runtime
+      - libmono-cairo4.0-cil
+      - libmono-posix4.0-cil
+      - libmono-sharpzip4.84-cil
+      - libmono-system-data4.0-cil
+      - libmono-system-web4.0-cil
+      - libgtk2.0-cil
+      - libglib2.0-cil
+      - libdbus2.0-cil
+      - libdbus-glib2.0-cil
+      - libmono-addins0.2-cil
+      - libtaglib2.1-cil
+      - libsqlite3-0
+      - libgstreamer1.0-0
+      - gstreamer1.0-plugins-base
+      - gstreamer1.0-plugins-good
+      - gstreamer1.0-plugins-ugly
+      - gstreamer1.0-libav
+      - gstreamer1.0-pulseaudio
+      - libxxf86vm1
+      - libxrandr2
+      - libayatana-appindicator1
+      - gnome-icon-theme
+      - shared-mime-info
+      - fonts-dejavu-core
+  launcher:
+    plugin: dump
+    source: snap/local
+    override-build: |
+      craftctl default
+      mkdir -p "$CRAFT_PART_INSTALL/share/themes" "$CRAFT_PART_INSTALL/share/icons" "$CRAFT_PART_INSTALL/lib/gtk-2.0"
