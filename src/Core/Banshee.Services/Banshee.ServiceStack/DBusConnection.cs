@@ -133,7 +133,7 @@ namespace Banshee.ServiceStack
             connect_tried = true;
 
             if (!enabled) {
-                primary_instance = true;
+                return true;
             }
 
             try {
