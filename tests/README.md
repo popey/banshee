@@ -1,3 +1,17 @@
+# Revival regression runner
+
+Inside the LXD builder, run:
+
+```sh
+sh /path/to/tests/run-built-regressions.sh /root/parts/banshee/build
+```
+
+This compiles the existing probes and runs 24 service checks, nine podcast
+transfer cases and 14 XDG folder cases against freshly built assemblies.
+It uses local fixtures, not a real Last.fm account or the music library.
+Results of the Git-source migration are in
+[the migration validation](../docs/revival-validation.md).
+
 # Podcast recovery checks
 
 These tests exercise the actual compiled `Migo.dll` against a local HTTP

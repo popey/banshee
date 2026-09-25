@@ -19,7 +19,7 @@ the Git-source migration is local and awaiting validation/publication.
 - [x] Restore D-Bus single-instance activation, MPRIS/media keys, native
   Ayatana tray actions, and track notifications; validated on Ubuntu GNOME.
 
-The build applies **24 upstream source patches**: ten carried from Ubuntu,
+The branch incorporates **24 upstream source patches**: ten carried from Ubuntu,
 and fourteen local patches (modern Mono/shell test, D-Bus disable option,
 GTK file-chooser URI ownership, stable snap library folders, podcast download reliability, newer D-Bus bindings, Ayatana integration,
 the snap MPRIS desktop-entry identity, Internet Archive API compatibility,
