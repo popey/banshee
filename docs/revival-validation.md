@@ -57,3 +57,35 @@ Review the local history and attribution, then publish the revival branch when
 authorized. Before replacing the stable release, perform an installed desktop
 smoke test of this Git-built artifact. Set the default branch and connect any
 Store build automation only as subsequent explicit publication steps.
+
+## Installed desktop smoke test
+
+Completed later on 2026-09-25 on Ubuntu GNOME/X11, using the artifact and
+SHA256 above. Installed over Store revision 1 as local revision x1, retaining
+the existing profile. The Git-built snap is now the installed version.
+
+- Started successfully with Yaru styling, readable fonts and toolbar icons.
+- Retained 3,256 music tracks, six feeds, 3,415 podcast entries and both
+  completed podcast downloads. SQLite integrity check returned `ok`.
+- `tests/mpris-controls.py` passed play/pause/toggle, absolute and relative
+  seek, volume, shuffle, repeat and PropertiesChanged signals.
+- Local music playback worked; Last.fm's API confirmed now-playing reporting
+  using the retained login. A full new scrobble was not tested in this pass.
+- Linux Matters and Waveform downloads played to 9.056 and 8.676 seconds,
+  respectively, with existing local artwork URLs. Download files remain in
+  SNAP_USER_COMMON/Podcasts across the revision change.
+- Internet Archive's Alice Dugdale chapter 1 streamed to 7.478 seconds.
+  Its cover appeared in GNOME's media panel. The notification-area menu rendered.
+- Six live Archive/Last.fm API checks passed using the installed assemblies.
+- Quit and relaunched successfully; the library/subscriptions/downloads
+  persisted and playback was left stopped.
+
+No blocker was found in those flows. Optical-disc hardware services remain
+unavailable. GTK/Hyena accessibility initialization emitted warnings when
+opening podcasts; ordinary controls worked, but screen-reader operation was
+not validated. This is recorded in the roadmap for investigation.
+
+This pass did not repeat a purge/first-run test, a new podcast download, every
+media format or external-drive testing. No Store release or default-branch
+change was made. The issue-tracking investigation was added to TODO.md; GitHub
+Issues itself was not enabled by this task.

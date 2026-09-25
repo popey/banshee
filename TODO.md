@@ -10,6 +10,13 @@ the Git-source migration is local and awaiting validation/publication.
 
 ## Current baseline
 
+- [ ] Investigate enabling GitHub Issues on `popey/banshee`: check fork
+  settings, decide labels and bug-report templates, and link the tracker
+  from the README and Snap Store metadata once enabled.
+- [ ] Investigate GTK/Hyena accessibility initialization warnings (`model_changed`,
+  AtkSelection/AtkTable) observed when opening podcasts in the Git-built snap;
+  compare with the Store build and test screen-reader behaviour.
+
 - [x] Pin and vendor the unchanged upstream 2.6.2 source archive.
 - [x] Build a strict amd64/core22 snap with its Mono and GTK# 2 runtime.
 - [x] Fix modern compilation, GTK import crash, icons, and audio setup.
