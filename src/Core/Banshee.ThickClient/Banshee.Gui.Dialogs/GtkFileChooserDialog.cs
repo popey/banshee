@@ -37,6 +37,38 @@ namespace Banshee.Gui.Dialogs
 {
     public class GtkFileChooserDialog : Gtk.FileChooserDialog, IBansheeFileChooser
     {
+        // GTK# 2's generated list marshaller can free GSList nodes incorrectly
+        // on current Mono/GLib. Keep ownership of the list and strings explicit.
+        [System.Runtime.InteropServices.DllImport ("libgtk-x11-2.0.so.0")]
+        private static extern IntPtr gtk_file_chooser_get_uris (IntPtr chooser);
+
+        [System.Runtime.InteropServices.DllImport ("libglib-2.0.so.0")]
+        private static extern void g_free (IntPtr data);
+
+        [System.Runtime.InteropServices.DllImport ("libglib-2.0.so.0")]
+        private static extern void g_slist_free (IntPtr list);
+
+        public new string[] Uris {
+            get {
+                var result = new System.Collections.Generic.List<string> ();
+                IntPtr list = gtk_file_chooser_get_uris (Handle);
+                try {
+                    for (IntPtr node = list; node != IntPtr.Zero;
+                         node = System.Runtime.InteropServices.Marshal.ReadIntPtr (node, IntPtr.Size)) {
+                        IntPtr value = System.Runtime.InteropServices.Marshal.ReadIntPtr (node);
+                        result.Add (GLib.Marshaller.Utf8PtrToString (value));
+                    }
+                } finally {
+                    for (IntPtr node = list; node != IntPtr.Zero;
+                         node = System.Runtime.InteropServices.Marshal.ReadIntPtr (node, IntPtr.Size)) {
+                        g_free (System.Runtime.InteropServices.Marshal.ReadIntPtr (node));
+                    }
+                    g_slist_free (list);
+                }
+                return result.ToArray ();
+            }
+        }
+
         public IBansheeFileChooser CreateForImport (string title, bool files)
         {
             var chooser = new Banshee.Gui.Dialogs.GtkFileChooserDialog (
