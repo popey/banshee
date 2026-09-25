@@ -37,6 +37,7 @@ username was tested with a fixture session. This pass did not repeat real
 browser consent or a full scrobble. Earlier successful scrobbling does not
 establish why authorization failed on another desktop.
 
-Store stable remains revision 1; this change has not been published there.
+Published to Store stable as revision 2 on 2026-09-25 using the tested artifact
+above. The upload completed successfully and reported the revision released.
 Joey's exact login, Archive and video failures remain open pending reproduction
 details. See [the investigation](lastfm-report-investigation.md).

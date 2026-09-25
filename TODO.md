@@ -6,12 +6,12 @@ Builds must use LXD, never destructive mode. Use upstream versions without
 local build-counter suffixes and reuse fixed artifact/log filenames (see README).
 The intended release path is 2.6.2 in stable after validation, with 2.9.1
 potentially evaluated in candidate or beta. Version 2.6.2 is published in stable;
-the Git-source migration is local and awaiting validation/publication.
+the Git-source migration and Last.fm login fixes are published in stable revision 2.
 
 ## Current baseline
 
 - [x] Harden Last.fm login: handle token/browser-launch failures and preserve
-  the API-returned username. Built and tested locally; not yet released to the Store.
+  the API-returned username. Built, tested and released to Store stable as revision 2.
   [Validation](docs/lastfm-login-fix.md).
 - [ ] Investigate Joey's login/Archive/video reports with exact reproduction
   details. [Investigation](docs/lastfm-report-investigation.md).
