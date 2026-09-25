@@ -192,6 +192,14 @@ namespace Banshee.InternetArchive
 
         private void BuildInfoBox ()
         {
+            string art = DetailsSource.ArtworkIdForItem (item.Id);
+            if (Banshee.Base.CoverArtSpec.CoverExists (art)) {
+                try {
+                    using (var pixbuf = new Gdk.Pixbuf (Banshee.Base.CoverArtSpec.GetPath (art), 160, 160, true)) {
+                        PackStart (new Gtk.Image (pixbuf) { Yalign = 0f }, false, false, 0);
+                    }
+                } catch (Exception) { /* A damaged cache file must not break the item view. */ }
+            }
             var frame = new Hyena.Widgets.RoundedFrame ();
             var vbox = new VBox ();
             vbox.Spacing = 6;
@@ -400,7 +408,8 @@ namespace Banshee.InternetArchive
             string [] format_blacklist = new string [] { "metadata", "fingerprint", "checksums", "xml", "m3u", "dublin core", "unknown" };
             var formats = new List<string> ();
             foreach (var f in files) {
-                var track = new TrackInfo () {
+                var track = new DetailsSource.ArchiveTrackInfo () {
+                    ItemId      = item.Id,
                     Uri         = new SafeUri (f.Location),
                     FileSize    = f.Size,
                     TrackNumber = f.Track,

@@ -80,7 +80,7 @@ namespace Banshee.CoverArt
             );
 
             SelectCommand = new HyenaSqliteCommand (String.Format (@"
-                SELECT DISTINCT CoreAlbums.AlbumID, CoreAlbums.Title, CoreArtists.Name, {0}, CoreTracks.TrackID
+                SELECT DISTINCT CoreAlbums.AlbumID, CoreAlbums.Title, CoreArtists.Name, {0}, CoreTracks.TrackID, CoreAlbums.MusicBrainzID
                     FROM CoreTracks, CoreArtists, CoreAlbums
                     WHERE
                         CoreTracks.PrimarySourceID = ? AND
@@ -123,7 +123,8 @@ namespace Banshee.CoverArt
                 PrimarySource = ServiceManager.SourceManager.MusicLibrary,
                 Uri = new SafeUri (reader.Get<string> (3)),
                 DbId = reader.Get<int> (4),
-                AlbumId = reader.Get<int> (0)
+                AlbumId = reader.Get<int> (0),
+                AlbumMusicBrainzId = reader.Get<string> (5)
             };
 
             Status = String.Format (Catalog.GetString ("{0} - {1}"), track.ArtistName, track.AlbumTitle);

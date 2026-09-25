@@ -229,11 +229,16 @@ namespace Lastfm.Data
 
     public class AlbumCoverUrls : DataEntry
     {
-        public string Small             { get { return Get<string>      ("small"); } }
-        public string Medium            { get { return Get<string>      ("medium"); } }
-        public string Large             { get { return Get<string>      ("large"); } }
+        private string Image (string size)
+        {
+            var image = Root.SelectSingleNode ("image[@size='" + size + "']");
+            return image == null ? Get<string> (size) : image.InnerText;
+        }
+        public string Small             { get { return Image ("small"); } }
+        public string Medium            { get { return Image ("medium"); } }
+        public string Large             { get { return Image ("large"); } }
         public string[] AllUrls() {
-            return (new string[] {Small, Medium, Large});
+            return (new string[] {Small, Medium, Large, Image ("extralarge"), Image ("mega")});
         }
     }
 

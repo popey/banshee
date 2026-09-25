@@ -85,8 +85,8 @@ namespace Banshee.Mpris
             }
 
             string artid = track.ArtworkId;
-            if (artid != null) {
-                SetInfo ("mpris:artUrl", String.Concat ("file://", CoverArtSpec.GetPath (artid)));
+            if (!String.IsNullOrEmpty (artid) && CoverArtSpec.CoverExists (artid)) {
+                SetInfo ("mpris:artUrl", new Uri (CoverArtSpec.GetPath (artid)).AbsoluteUri);
             }
         }
 

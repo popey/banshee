@@ -52,141 +52,33 @@ using Banshee.Collection.Database;
 
 namespace Banshee.Metadata.MusicBrainz
 {
+    // The old MusicBrainz v1/ASIN lookup is retired. Tagged release IDs can
+    // address Cover Art Archive directly; untagged albums fall back to Last.fm.
     public class MusicBrainzQueryJob : MetadataServiceJob
     {
-        private static string AmazonUriFormat = "http://images.amazon.com/images/P/{0}.01._SCLZZZZZZZ_.jpg";
-
-        class CoverArtSite
-        {
-             public Regex Regex;
-             public string ImgURI;
-
-             public CoverArtSite (Regex regex, string img_URI) {
-                this.Regex = regex;
-                this.ImgURI = img_URI;
-             }
-        }
-
-        private static CoverArtSite [] CoverArtSites = new CoverArtSite [] {
-            // CDBaby
-            new CoverArtSite (
-                new Regex (@"http://(?:www\.)?cdbaby.com/cd/(\w)(\w)(\w*)"),
-                "http://cdbaby.name/{0}/{1}/{0}{1}{2}.jpg"
-            ),
-            // Jamendo
-            new CoverArtSite (
-                new Regex (@"http:\/\/(?:www\.)?jamendo.com\/(?:[a-z]+\/)?album\/([0-9]+)"),
-                "http://www.jamendo.com/get/album/id/album/artworkurl/redirect/{0}/?artwork_size=0"
-            )
-        };
-
-        public MusicBrainzQueryJob (IBasicTrackInfo track)
-        {
-            Track = track;
-            MusicBrainzService.UserAgent = Banshee.Web.Browser.UserAgent;
-        }
-
-        public override void Run ()
-        {
-            Lookup ();
-        }
-
+        public MusicBrainzQueryJob (IBasicTrackInfo track) { Track = track; }
+        public override void Run () { Lookup (); }
         public bool Lookup ()
         {
-
-            if (Track == null || (Track.MediaAttributes & TrackMediaAttributes.Podcast) != 0) {
+            var track = Track as TrackInfo;
+            Guid mbid;
+            if (track == null || (track.MediaAttributes & TrackMediaAttributes.Podcast) != 0 ||
+                track.ArtworkId == null || CoverArtSpec.CoverExists (track.ArtworkId) ||
+                !Guid.TryParse (track.AlbumMusicBrainzId, out mbid) || !InternetConnected) {
                 return false;
             }
-
-            string artwork_id = Track.ArtworkId;
-
-            if (artwork_id == null) {
-                return false;
-            } else if (CoverArtSpec.CoverExists (artwork_id)) {
-                return false;
-            } else if (!InternetConnected) {
-                return false;
-            }
-
-            DatabaseTrackInfo dbtrack;
-            dbtrack = Track as DatabaseTrackInfo;
-
-            Release release;
-
-            // If we have the MBID of the album, we can do a direct MusicBrainz lookup
-            if (dbtrack != null && dbtrack.AlbumMusicBrainzId != null) {
-
-                release = Release.Get (dbtrack.AlbumMusicBrainzId);
-                if (!String.IsNullOrEmpty (release.GetAsin ()) && SaveCover (String.Format (AmazonUriFormat, release.GetAsin ()))) {
+            try {
+                if (SaveHttpStreamCover (new Uri ("https://coverartarchive.org/release/" +
+                    mbid.ToString () + "/front-500"), track.ArtworkId, null)) {
+                    AddTag (new StreamTag { Name = CommonTags.AlbumCoverId, Value = track.ArtworkId });
                     return true;
                 }
-
-            // Otherwise we do a MusicBrainz search
-            } else {
-                ReleaseQueryParameters parameters = new ReleaseQueryParameters ();
-                parameters.Title = Track.AlbumTitle;
-                parameters.Artist = Track.AlbumArtist;
-                if (dbtrack != null) {
-                    parameters.TrackCount = dbtrack.TrackCount;
-                }
-
-                Query<Release> query = Release.Query (parameters);
-                release = query.PerfectMatch ();
-
-                foreach (Release r in query.Best ()) {
-                    if (!String.IsNullOrEmpty (r.GetAsin ()) && SaveCover (String.Format (AmazonUriFormat, r.GetAsin ()))) {
-                        return true;
-                    }
-                }
+            } catch (WebException e) {
+                // Missing art, rate limiting and network failures must permit the fallback.
+                if (e.Response != null) e.Response.Close ();
+                Log.Debug ("Cover Art Archive lookup unavailable", e.Status.ToString ());
             }
-
-            if (release == null) {
-                return false;
-            }
-
-            // No success with ASIN, let's try with other linked URLs
-            ReadOnlyCollection<UrlRelation> relations = release.GetUrlRelations ();
-            foreach (UrlRelation relation in relations) {
-
-                foreach (CoverArtSite site in CoverArtSites) {
-
-                   Match m = site.Regex.Match (relation.Target.AbsoluteUri);
-                   if (m.Success) {
-                        string [] parameters = new string [m.Groups.Count];
-                        for (int i = 1; i < m.Groups.Count; i++) {
-                            parameters[i-1] = m.Groups[i].Value;
-                        }
-
-                        String uri = String.Format (site.ImgURI, parameters);
-                        if (SaveCover (uri)) {
-                             return true;
-                        }
-                   }
-                }
-
-                if (relation.Type == "CoverArtLink" && SaveCover (relation.Target.AbsoluteUri)) {
-                   return true;
-                }
-            }
-
             return false;
         }
-
-        private bool SaveCover (string uri) {
-
-            string artwork_id = Track.ArtworkId;
-
-            if (SaveHttpStreamCover (new Uri (uri), artwork_id, null)) {
-                Log.Debug ("Downloaded cover art", artwork_id);
-                StreamTag tag = new StreamTag ();
-                tag.Name = CommonTags.AlbumCoverId;
-                tag.Value = artwork_id;
-
-                AddTag (tag);
-                return true;
-            }
-            return false;
-         }
-
     }
 }

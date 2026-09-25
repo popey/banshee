@@ -69,14 +69,10 @@ namespace Banshee.Metadata.LastFM
                 return;
             }
 
-            // Lastfm uses double url-encoding in their current 1.2 api for albuminfo.
-            string lastfmArtist = HttpUtility.UrlEncode (HttpUtility.UrlEncode (Track.AlbumArtist));
-            string lastfmAlbum = HttpUtility.UrlEncode (HttpUtility.UrlEncode (Track.AlbumTitle));
-
             LastfmAlbumData album = null;
 
             try {
-                album = new LastfmAlbumData (lastfmArtist, lastfmAlbum);
+                album = new LastfmAlbumData (Track.AlbumArtist, Track.AlbumTitle);
             } catch {
                 return;
             }
@@ -93,27 +89,14 @@ namespace Banshee.Metadata.LastFM
             }
 
             // No URL's found
-            if (String.IsNullOrEmpty (best_url) || best_url.Contains ("noimage")) {
-                //string upload_url = String.Format ("http://www.last.fm/music/{0}/{1}/+images", lastfmArtist, lastfmAlbum);
-                //Log.DebugFormat ("No coverart provided by lastfm. (you can upload it here: {0}) - {1} ", upload_url, Track.ArtworkId);
+            if (String.IsNullOrEmpty (best_url) || best_url.Contains ("noimage") ||
+                best_url.Contains ("2a96cbd8b46e442fc41c2b86b821562f")) {
                 return;
-            }
-
-            // Hack: You can get higher resolution artwork by replacing 130X130 with 300x300 in lastfm hosted albumart
-            string high_res_url = null;
-            if (best_url.Contains ("130x130")) {
-                high_res_url = best_url.Replace ("130x130", "300x300");
-            }
-
-            // Hack: You can get higher resolution artwork from Amazon too (lastfm sometimes uses amazon links)
-            if (best_url.Contains ("MZZZZZZZ")) {
-                high_res_url = best_url.Replace ("MZZZZZZZ", "LZZZZZZZ");
             }
 
             // Download the cover
             try {
-                if ((high_res_url != null && SaveHttpStreamCover (new Uri (high_res_url), artwork_id, null)) ||
-                   SaveHttpStreamCover (new Uri (best_url), artwork_id, null)) {
+                if (SaveHttpStreamCover (new Uri (best_url), artwork_id, null)) {
                     if (best_url.Contains ("amazon")) {
                         Log.Debug ("Downloaded cover art from Amazon", artwork_id);
                     } else {
@@ -126,7 +109,7 @@ namespace Banshee.Metadata.LastFM
                     AddTag (tag);
                 }
             } catch (Exception e) {
-                Log.Exception ("Cover art found on Lastfm, but downloading it failed. Probably server under high load or dead link", e);
+                Log.Debug ("Last.fm artwork download failed", e.GetType ().Name);
             }
         }
     }

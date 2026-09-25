@@ -71,13 +71,13 @@ namespace Lastfm.Data
         protected LastfmData<T> Get<T> (string fragment, string xpath) where T : DataEntry
         {
             //using cacheKey because the public methods all use the same fragment but with a different xpath.
-            string cacheKey = fragment + xpath;
+            string cacheKey = typeof (T).FullName + fragment + xpath;
 
             if (cache.ContainsKey (cacheKey)) {
                 return (LastfmData<T>) cache [cacheKey];
             }
 
-            LastfmData<T> obj = new LastfmData<T> (String.Format ("album/{0}/{1}/{2}", artist, album, fragment), xpath);
+            LastfmData<T> obj = new LastfmData<T> (String.Format ("album/{0}/{1}/{2}", Uri.EscapeDataString (artist), Uri.EscapeDataString (album), fragment), xpath);
             cache [cacheKey] = obj;
             return obj;
         }
@@ -89,16 +89,16 @@ namespace Lastfm.Data
 
         public AlbumData AlbumData {
             // We don't need the array, since there is only 1 set of albumdata for any album. Therefore "[0]".
-            get { return (Get<AlbumData> ("info.xml", "/album"))[0]; }
+            get { return (Get<AlbumData> ("info.xml", "/lfm/album"))[0]; }
         }
 
         public LastfmData<AlbumTrack> AlbumTracks {
-            get { return Get<AlbumTrack> ("info.xml", "/album/tracks/track"); }
+            get { return Get<AlbumTrack> ("info.xml", "/lfm/album/tracks/track"); }
         }
 
         public AlbumCoverUrls AlbumCoverUrls {
             // We don't need the array, since there is only 1 set of covers for any album. Therefore "[0]".
-            get { return (Get<AlbumCoverUrls> ("info.xml", "/album/coverart"))[0]; }
+            get { return (Get<AlbumCoverUrls> ("info.xml", "/lfm/album"))[0]; }
         }
 
 #endregion

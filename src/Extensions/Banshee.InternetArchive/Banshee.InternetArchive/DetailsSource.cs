@@ -133,6 +133,12 @@ namespace Banshee.InternetArchive
         {
             try {
                 item.LoadDetails ();
+                try {
+                    new ArtworkJob (item.Id, item.Details.ImageUrl).Run ();
+                } catch (Exception e) {
+                    // An unavailable cover must not prevent loading or playing the item.
+                    Hyena.Log.Debug ("Internet Archive artwork unavailable", e.GetType ().Name);
+                }
                 ThreadAssist.ProxyToMain (delegate {
                     ClearMessages ();
                     if (item.Details != null) {
@@ -151,6 +157,30 @@ namespace Banshee.InternetArchive
                         SetStatus (Catalog.GetString ("Error getting item details from the Internet Archive"), true);
                     }
                 });
+            }
+        }
+
+        public class ArchiveTrackInfo : TrackInfo
+        {
+            public string ItemId { get; set; }
+            public override string ArtworkId { get { return ArtworkIdForItem (ItemId); } }
+        }
+
+        public static string ArtworkIdForItem (string id)
+        {
+            return String.IsNullOrEmpty (id) ? null : "internet-archive-" + CoverArtSpec.Digest (id);
+        }
+
+        public class ArtworkJob : Banshee.Metadata.MetadataServiceJob
+        {
+            private string id, url;
+            public ArtworkJob (string id, string url) { this.id = id; this.url = url; }
+            public override void Run ()
+            {
+                string art = ArtworkIdForItem (id);
+                if (art != null && !CoverArtSpec.CoverExists (art) && InternetConnected) {
+                    SaveHttpStreamCover (new Uri (url), art, null);
+                }
             }
         }
 

@@ -89,6 +89,14 @@ namespace Lastfm.Data
 
         private static string BuildDataUrl (string fragment)
         {
+            if (fragment.StartsWith ("album/", StringComparison.Ordinal)) {
+                string[] album_parts = fragment.Split ('/');
+                if (album_parts.Length != 4 || album_parts[3] != "info.xml") {
+                    throw new NotSupportedException ("Unsupported Last.fm album request");
+                }
+                return "https://ws.audioscrobbler.com/2.0/?method=album.getInfo&api_key=" +
+                    LastfmCore.ApiKey + "&artist=" + album_parts[1] + "&album=" + album_parts[2];
+            }
             string[] parts = fragment.Split (new char[] { '/' }, 3);
             if (parts.Length != 3) throw new ArgumentException ("Invalid Last.fm data request");
             string[] resource = parts[2].Split ('?');
