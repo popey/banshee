@@ -44,3 +44,12 @@ authorization URLs, session keys or tokens.
 The confirmed login defects have now been fixed and validated in a local build;
 see [the fix and validation record](lastfm-login-fix.md). The tested build was
 subsequently released to Store stable as revision 2 on 2026-09-25. These fixes do not establish the cause of Joey's reported failures.
+
+
+## Follow-up: browser failure identified
+
+On 2026-09-26 Joey supplied Ubuntu 26.04 LTS / Firefox snap and the exact
+browser-launch NullReferenceException. We reproduced a matching failure when
+the snap URL launcher service was initially stopped. See
+[browser activation diagnosis and fix](browser-launch-activation.md).
+Revision 2's login error-handling changes alone do not fix this cause.

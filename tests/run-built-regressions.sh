@@ -19,3 +19,4 @@ mono "$probe_dir/music-folders.exe" "$MONO_PATH/Nereid.exe"
 mcs -r:"$MONO_PATH/Lastfm.dll" -r:"$MONO_PATH/Hyena.dll" \
     -out:"$probe_dir/lastfm-auth.exe" "$test_dir/lastfm-auth-probe.cs"
 mono "$probe_dir/lastfm-auth.exe"
+sh "$test_dir/run-browser-launch.sh" "$build_dir"

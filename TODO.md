@@ -13,8 +13,12 @@ the Git-source migration and Last.fm login fixes are published in stable revisio
 - [x] Harden Last.fm login: handle token/browser-launch failures and preserve
   the API-returned username. Built, tested and released to Store stable as revision 2.
   [Validation](docs/lastfm-login-fix.md).
-- [ ] Investigate Joey's login/Archive/video reports with exact reproduction
-  details. [Investigation](docs/lastfm-report-investigation.md).
+- [x] Fix and locally validate browser launcher activation (66 regression checks
+  and installed-snap Firefox handoff). [Diagnosis](docs/browser-launch-activation.md).
+- [ ] Release the browser activation fix and confirm Last.fm authorization on
+  Joey's desktop.
+- [ ] Obtain reproduction details for Joey's Archive/video reports.
+  [Investigation](docs/lastfm-report-investigation.md).
 
 - [ ] Investigate enabling GitHub Issues on `popey/banshee`: check fork
   settings, decide labels and bug-report templates, and link the tracker

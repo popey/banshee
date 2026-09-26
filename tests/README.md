@@ -7,8 +7,8 @@ sh /path/to/tests/run-built-regressions.sh /root/parts/banshee/build
 ```
 
 This compiles the existing probes and runs 24 service checks, nine podcast
-transfer cases, 14 XDG folder cases and 16 Last.fm authorization checks against
-freshly built assemblies.
+transfer cases, 14 XDG folder cases, 16 Last.fm authorization checks and three browser activation
+checks against freshly built assemblies.
 It uses local fixtures, not a real Last.fm account or the music library.
 Results of the Git-source migration are in
 [the migration validation](../docs/revival-validation.md).
@@ -136,3 +136,22 @@ snap run --shell banshee -c '/absolute/path/to/checkout/tests/run-lastfm-login-u
 This checks installed snap assemblies without opening a browser, reading the
 real account configuration, or submitting scrobbles. It does not replace a
 real browser authorization test on the reporting user's desktop.
+
+## Browser service activation
+
+`run-browser-launch.sh /path/to/build` compiles the actual Browser.cs against
+built dependencies and starts a private session bus with a fake, activatable
+snap launcher. It checks launching while the service is initially stopped,
+launching again while it is running, and delivery of the complete URL exactly
+once per click. It does not contact Last.fm or open a real browser. The fixture
+uses dummy authorization parameters. Duplicate-type compiler warnings are
+expected: the test deliberately compiles Browser.cs in preference to the copy
+in the referenced Banshee.Services assembly. The complete regression runner
+includes these three checks (66 total).
+
+For the real desktop smoke test, compile `browser-installed-probe.cs` against
+`bin/Banshee.Services.dll` in LXD, pull the executable beside
+`run-browser-installed.sh`, and invoke that script through `snap run --shell
+banshee -c '/absolute/path/to/tests/run-browser-installed.sh'`. It uses the
+installed Browser implementation to open the public Last.fm API documentation
+page. This intentionally launches the default browser, without an auth token.

@@ -63,8 +63,15 @@ namespace Banshee.Web
             try {
                 url = Uri.EscapeUriString (url);
                 if (!String.IsNullOrEmpty (Environment.GetEnvironmentVariable ("SNAP"))) {
-                    var launcher = global::DBus.Bus.Session.GetObject<ISnapUrlLauncher> (
+                    var bus = global::DBus.Bus.Session;
+                    // dbus-sharp GetObject returns null for an unowned name;
+                    // unlike a method call, it does not activate the service.
+                    bus.StartServiceByName ("io.snapcraft.Launcher");
+                    var launcher = bus.GetObject<ISnapUrlLauncher> (
                         "io.snapcraft.Launcher", new global::DBus.ObjectPath ("/io/snapcraft/Launcher"));
+                    if (launcher == null) {
+                        throw new InvalidOperationException ("The desktop URL launcher is unavailable");
+                    }
                     launcher.OpenURL (url);
                     return true;
                 } else if (open_handler != null) {
