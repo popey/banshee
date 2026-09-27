@@ -1,5 +1,12 @@
 # Source publication plan
 
+Current status (2026-09-27): the fork is published, `revival/2.6.2` is the
+default branch, stable revisions 2/3 were built from it, and clean GitHub
+Actions/LXD build, regression and review validation now passes. See
+[build automation](build-automation.md). The original plan below records the
+agreed branch strategy; the separate Snapcraft website connection still needs
+diagnosis.
+
 The fork now exists. [Baseline audit](source-baseline-audit.md) verified the
 release source and all 24 patches. Hyena is now vendored in the local revival branch with its original license
 and pinned revision recorded; the JSON fix is a separate commit.

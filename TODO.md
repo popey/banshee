@@ -131,7 +131,8 @@ Follow-up polish:
 7. [x] Publish the patched source in `popey/banshee`, preserving upstream master
    and patch provenance. `revival/2.6.2` is now the default branch; stable
    revisions 2 and 3 were built locally from this source with LXD.
-   - [ ] Finish automated LXD build/regression/review validation on GitHub.
+   - [x] Finish automated LXD build/regression/review validation on GitHub.
+     [Successful run](https://github.com/popey/banshee/actions/runs/36344675673).
    - [ ] Diagnose the Snapcraft build-service GitHub hookup; awaiting the exact
      connection error. Store publication remains explicit.
    - Later create `revival/2.9.1` from its release tag, port applicable fixes,
@@ -151,9 +152,11 @@ Follow-up polish:
   once; no migration helper is shipped.
 - [ ] Decide whether to share the library database/configuration across revisions,
   accounting for rollback and 2.9.1 schema compatibility.
-11. [ ] Add CI/LXD build and smoke-test coverage: clean build, library import,
-    playback, playlist persistence, HTTPS, and feed parsing. Test a fresh user
-    profile and an upgrade with an existing library. Preserve user databases.
+11. [x] Add clean GitHub Actions/LXD builds, 66 deterministic regression checks,
+    full snap review, and downloadable validation evidence.
+    - [ ] Extend automation to real desktop import/playback, playlist persistence,
+      live HTTPS, fresh profiles and upgrade scenarios. Current CI fixtures do
+      not replace the separate desktop checks. Preserve user databases.
 12. [ ] Define an ongoing rebuild/update cadence for the base, Mono, codecs,
     CA certificates, and other bundled libraries. Record core22 migration
     constraints and evaluate a supported newer base separately.
