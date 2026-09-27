@@ -26,6 +26,19 @@ SNAP_USER_COMMON; settings and the library database use SNAP_USER_DATA.
 Optional external-drive access: `snap connect banshee:removable-media`.
 Optical-disc/device-sync support and retired services are not promised.
 
+## Before uploading
+
+Run local review on the exact artifact before **every** Store upload:
+
+```sh
+review-tools.snap-review banshee_2.6.2_amd64.snap > /tmp/banshee-snap-review.log 2>&1
+```
+
+Inspect the exit status and report, resolve unexpected findings, and record
+its SHA-256 and review result with the release. Existing Store approvals must
+be documented for any corresponding interface findings. Repeat review if the
+artifact changes. Runtime tests and Store processing do not replace this check.
+
 ## Source and attribution
 
 Based on upstream tag `2.6.2`, commit

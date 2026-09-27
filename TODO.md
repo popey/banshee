@@ -10,13 +10,17 @@ the Git-source migration and Last.fm login fixes are published in stable revisio
 
 ## Current baseline
 
+- [ ] Resolve local snap-review `squashfs_repack_checksum` failure before the
+  next upload. Revision 3 is already released; retrospective review failed.
+  [Findings](docs/store-release.md).
+
 - [x] Harden Last.fm login: handle token/browser-launch failures and preserve
   the API-returned username. Built, tested and released to Store stable as revision 2.
   [Validation](docs/lastfm-login-fix.md).
 - [x] Fix and locally validate browser launcher activation (66 regression checks
   and installed-snap Firefox handoff). [Diagnosis](docs/browser-launch-activation.md).
-- [ ] Release the browser activation fix and confirm Last.fm authorization on
-  Joey's desktop.
+- [x] Release the browser activation fix (stable revision 3).
+- [ ] Confirm Last.fm authorization on Joey's desktop.
 - [ ] Obtain reproduction details for Joey's Archive/video reports.
   [Investigation](docs/lastfm-report-investigation.md).
 

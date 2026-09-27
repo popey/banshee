@@ -47,5 +47,5 @@ old browser error dialog; users do not need to find a Banshee browser setting.
 The private bus tests cover a stopped launcher without stopping the user's
 real desktop service. The desktop check confirms the installed implementation
 and confinement permissions; it does not repeat account consent or scrobbling.
-Store stable remains revision 2 without this activation fix. Publication and
-confirmation on Joey's machine are outstanding.
+Released to Store stable as revision 3 on 2026-09-26; confirmed by
+`snapcraft status banshee`. Confirmation on Joey's machine remains outstanding.
