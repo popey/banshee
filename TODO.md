@@ -1,18 +1,18 @@
 # Banshee preservation roadmap
 
-Target: a trustworthy Banshee 2.6.2 preservation snap, first available for
-opt-in testing on the Snap Store, then suitable for a Linux Matters demo.
+Target: maintain a trustworthy Banshee 2.6.2 preservation snap on the Snap Store
+and prepare a Linux Matters demo.
 Builds must use LXD, never destructive mode. Use upstream versions without
 local build-counter suffixes and reuse fixed artifact/log filenames (see README).
 The intended release path is 2.6.2 in stable after validation, with 2.9.1
 potentially evaluated in candidate or beta. Version 2.6.2 is published in stable;
-the Git-source migration and Last.fm login fixes are published in stable revision 2.
+stable revision 3 includes the Git-source migration and Last.fm browser fixes.
 
 ## Current baseline
 
-- [ ] Resolve local snap-review `squashfs_repack_checksum` failure before the
-  next upload. Revision 3 is already released; retrospective review failed.
-  [Findings](docs/store-release.md).
+- [x] Resolve local snap-review checksum mismatch: full official review passes
+  with native builder tools and the Store-approved declaration; no checks
+  disabled. [Diagnosis and repeatable review](docs/snap-review.md).
 
 - [x] Harden Last.fm login: handle token/browser-launch failures and preserve
   the API-returned username. Built, tested and released to Store stable as revision 2.
@@ -20,7 +20,8 @@ the Git-source migration and Last.fm login fixes are published in stable revisio
 - [x] Fix and locally validate browser launcher activation (66 regression checks
   and installed-snap Firefox handoff). [Diagnosis](docs/browser-launch-activation.md).
 - [x] Release the browser activation fix (stable revision 3).
-- [ ] Confirm Last.fm authorization on Joey's desktop.
+- [ ] Await Joey's confirmation of Last.fm authorization on revision 3. Alan
+  has already asked him to retry in the article comments.
 - [ ] Obtain reproduction details for Joey's Archive/video reports.
   [Investigation](docs/lastfm-report-investigation.md).
 
@@ -100,7 +101,7 @@ Follow-up polish:
    Keep credentials and session tokens out of diagnostic logs.
    Historical Last.fm radio remains a separate, unvalidated feature.
    See `docs/internet-services.md` and `VALIDATION.md`.
-- [ ] Before publishing, establish ownership/maintenance of Last.fm application
+- [ ] Establish ownership/maintenance of Last.fm application
   credentials. The historical Banshee registration works for the consenting
   account test; this is not a maintenance arrangement for a Store release.
 - [ ] Archive follow-up: add an in-app download/import action and validate search
@@ -120,39 +121,26 @@ Follow-up polish:
   scanner's retry scheduling. There are 3,256 user music files and one remaining
   album group without art. Existing user covers and audio tags are preserved.
 
-## P1 — before a public Store edge release
+## P1 — ongoing release and maintenance work
 
 - [x] Offer helpful first-run music selection: suggest the desktop's XDG music
   folder, including localized/custom paths, with Choose another folder and
   Not now. Import only on confirmation, in place; remember the choice and skip
   existing libraries. [Implementation and validation](docs/first-run-music.md).
 
-7. [ ] Share the revival through an upstream fork under `popey` (Martin's
-   proposed approach), then switch the Store build to that public source:
-   - Identify and verify the canonical upstream repository and the 2.6.2 tag;
-     retain upstream history and a stock, unmodified `master` branch.
-   - Create `revival/2.6.2` from upstream tag `2.6.2`. Carry
-     the Ubuntu compatibility patches with provenance, local fixes, Snapcraft
-     packaging, tests and documentation as reviewable commits.
-   - Exclude credentials, local profiles/music, downloaded media, generated
-     binaries, snaps and diagnostic logs. Preserve licenses and patch authorship.
-   - Document how the revival baseline relates to stock master and the later
-     2.9.1 experiment; avoid implying that current master is the 2.6.2 release.
-   - Make `revival/2.6.2` the default branch once it is ready; build the Store snap
-     from that branch with traceable commits/tags and LXD CI validation.
-   - Later create `revival/2.9.1` from tag `2.9.1`, porting only applicable
-     fixes. Target beta first, then candidate; retain 2.6.2 for stable.
-   - Repository choice, verified refs and handoff: [source publication plan](docs/source-publication.md).
-   - This is the publication plan only. Fork creation, branch publication,
-     default-branch changes and Store publishing have not been performed.
-8. [ ] Check/reserve an appropriate available Store name and publisher identity.
-   Prepare an accurate unofficial-preservation description, icon, screenshots,
-   contact/issue tracker, source link, and supported-feature list.
-   - Six populated-app screenshot candidates are available in
-     [the gallery](docs/store/index.html), with [captions](docs/store/README.md).
-     [Clean-install validation](docs/clean-install-validation.md) records music
-     import, six podcast downloads/playback tests, Last.fm scrobbling and
-     Internet Archive streaming. Final listing selection remains open.
+7. [x] Publish the patched source in `popey/banshee`, preserving upstream master
+   and patch provenance. `revival/2.6.2` is now the default branch; stable
+   revisions 2 and 3 were built locally from this source with LXD.
+   - [ ] Finish automated LXD build/regression/review validation on GitHub.
+   - [ ] Diagnose the Snapcraft build-service GitHub hookup; awaiting the exact
+     connection error. Store publication remains explicit.
+   - Later create `revival/2.9.1` from its release tag, port applicable fixes,
+     and target beta first while retaining 2.6.2 for stable.
+   - [Source publication plan](docs/source-publication.md).
+8. [x] Obtain the reserved `banshee` Store name and publish stable.
+   - [ ] Finish Store listing selection and source/contact/issue links.
+   - Six screenshot candidates are in [the gallery](docs/store/index.html),
+     with [captions](docs/store/README.md).
 9. [ ] Review bundled license notices and redistributed dependencies; keep
    source and build instructions accessible.
 10. [ ] Run Snap Store review tools and resolve actionable findings. Explain
@@ -169,13 +157,9 @@ Follow-up polish:
 12. [ ] Define an ongoing rebuild/update cadence for the base, Mono, codecs,
     CA certificates, and other bundled libraries. Record core22 migration
     constraints and evaluate a supported newer base separately.
-13. [ ] Publish an opt-in **edge** revision once the above gates pass, with
-    explicit limitations. Publication is a future action, not done by this
-    planning task. Use beta/candidate for broader validation before stable.
-
-Service restorations need not all block an explicitly local-music-only edge
-release, but every advertised feature must work or be clearly marked unavailable.
-Podcasts are a priority for the intended Linux Matters demonstration.
+13. [x] Publish stable: revision 1 after Store interface approval, revision 2
+    for login error handling, and revision 3 for browser service activation.
+    Future experimental releases can use edge/beta/candidate.
 
 ## P2 — polish, wider testing, and the podcast demo
 
@@ -225,8 +209,8 @@ See `docs/network-investigation.md` for the 2026-09-09 diagnosis and
 - Banshee 2.9.1 release notes: https://bansheemediaplayer.github.io/download/archives/2.9.1/
 
 Desktop release follow-up:
-- [ ] Check Snap Store review requirements for the Banshee/CollectionIndexer
-  D-Bus slots and MPRIS slot before uploading.
+- [x] Obtain Store approval for the Banshee/CollectionIndexer D-Bus and MPRIS
+  slot connections. Use the current signed declaration in local review.
 - [ ] Test plain GNOME without an AppIndicator extension, KDE and Wayland.
   Ubuntu GNOME with its AppIndicator extension is the tested tray environment.
 - [ ] Revisit MPRIS OpenUri's legacy radio semantics for local files.

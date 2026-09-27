@@ -71,3 +71,10 @@ Full diagnostic output: `/tmp/banshee-snap-review.log`.
 Extracted diff: `/tmp/banshee-snap-review-diff.log`.
 Investigate and resolve the unexpected repack result before the next upload;
 do not disable the check to obtain a passing result.
+
+### Review failure resolved — 27 September 2026
+
+The full official review passed (exit 0) using the core22 builder's native
+SquashFS tools and the current signed Store declaration. A separate controlled
+repack matched revision 3 byte-for-byte. No checks were disabled and the
+artifact was unchanged. [Diagnosis and repeatable review](snap-review.md).

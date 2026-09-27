@@ -31,13 +31,23 @@ Optical-disc/device-sync support and retired services are not promised.
 Run local review on the exact artifact before **every** Store upload:
 
 ```sh
-review-tools.snap-review banshee_2.6.2_amd64.snap > /tmp/banshee-snap-review.log 2>&1
+tools/review-snap.sh banshee_2.6.2_amd64.snap
 ```
+
+The wrapper runs the unmodified official reviewer in the completed LXD builder,
+using its native SquashFS tools and Banshee's current signed Store declaration.
+Set `BANSHEE_BUILDER` if more than one Banshee build container exists. It saves
+`/tmp/banshee-snap-review.log` and `/tmp/banshee-snap.sha256`. The host needs
+Python 3 with PyYAML (`python3-yaml`). See [review diagnosis](docs/snap-review.md).
 
 Inspect the exit status and report, resolve unexpected findings, and record
 its SHA-256 and review result with the release. Existing Store approvals must
 be documented for any corresponding interface findings. Repeat review if the
 artifact changes. Runtime tests and Store processing do not replace this check.
+
+The [GitHub workflow](.github/workflows/snap.yml) builds with LXD, runs the
+regression suite and this same full review, and retains the snap and evidence.
+It does not upload to the Store. [CI details](docs/build-automation.md).
 
 ## Source and attribution
 

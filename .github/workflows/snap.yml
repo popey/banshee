@@ -1,0 +1,46 @@
+name: Build and review snap
+on:
+  push:
+    branches: [revival/2.6.2]
+  pull_request:
+    branches: [revival/2.6.2]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: snap-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Build with LXD
+        id: build
+        uses: canonical/action-build@3bdaa03e1ba6bf59a65f84a751d943d549a54e79 # v1
+        with:
+          snapcraft-args: --use-lxd
+      - name: Run regression checks in the builder
+        run: sudo -E bash tools/validate-lxd.sh
+      - name: Review exact artifact
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-yaml
+          sudo -E bash tools/review-snap.sh banshee_2.6.2_amd64.snap
+      - name: Save snap and validation evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: banshee-2.6.2-amd64
+          if-no-files-found: warn
+          path: |
+            banshee_2.6.2_amd64.snap
+            /tmp/banshee-regression.log
+            /tmp/banshee-snap-review.log
+            /tmp/banshee-snap.sha256
+            /tmp/banshee-store-declaration.assert
+            /tmp/banshee-review-slots.json
