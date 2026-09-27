@@ -2,7 +2,8 @@
   {
     "patch": "Add-dllmaps-for-Banshee.NowPlaying.X11.dll.patch",
     "commit": "f33dae49c225236dc56859bd6f06ff817095243a",
-    "sha256": "a750162c73651df1ab3d098478da0b71c2bca540fbf65e9b6694ef37aeb190b6"
+    "sha256": "a750162c73651df1ab3d098478da0b71c2bca540fbf65e9b6694ef37aeb190b6",
+    "note": "The original import omitted the new .dll.config because upstream ignores *.config. The missing file was tracked explicitly during clean CI validation on 2026-09-27; its contents are unchanged from the Ubuntu patch by Chow Loong Jin."
   },
   {
     "patch": "Initial-port-to-GStreamer-1.0.patch",

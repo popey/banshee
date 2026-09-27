@@ -95,3 +95,6 @@ __pycache__/
 # Ship the snap launcher despite upstream bin/ ignore rules.
 !snap/local/bin/
 !snap/local/bin/banshee-launch
+
+# Source input from the Ubuntu X11 compatibility patch, not a generated config.
+!src/Backends/Banshee.NowPlaying.X11/Banshee.NowPlaying.X11.dll.config

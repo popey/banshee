@@ -2,8 +2,10 @@ name: Build and review snap
 on:
   push:
     branches: [revival/2.6.2]
+    paths-ignore: ["**.md", "docs/**"]
   pull_request:
     branches: [revival/2.6.2]
+    paths-ignore: ["**.md", "docs/**"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,7 +17,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
       - name: Build with LXD
@@ -33,7 +35,7 @@ jobs:
           sudo -E bash tools/review-snap.sh banshee_2.6.2_amd64.snap
       - name: Save snap and validation evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: banshee-2.6.2-amd64
           if-no-files-found: warn
