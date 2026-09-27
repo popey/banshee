@@ -6,9 +6,11 @@ using Banshee.Web;
 
 public class FakeLauncher : ISnapUrlLauncher
 {
+    public int Calls { get; private set; }
     public void OpenURL (string url)
     {
         File.AppendAllText (Environment.GetEnvironmentVariable ("BANSHEE_BROWSER_RECORD"), url + "\n");
+        Calls++;
     }
 }
 
@@ -18,9 +20,11 @@ class BrowserLaunchProbe
     {
         var bus = Bus.Session;
         if (args.Length > 0 && args[0] == "serve") {
-            bus.Register (new ObjectPath ("/io/snapcraft/Launcher"), new FakeLauncher ());
+            var launcher = new FakeLauncher ();
+            bus.Register (new ObjectPath ("/io/snapcraft/Launcher"), launcher);
             bus.RequestName ("io.snapcraft.Launcher");
-            while (true) bus.Iterate ();
+            while (launcher.Calls < 2) bus.Iterate ();
+            return 0;
         }
         if (bus.NameHasOwner ("io.snapcraft.Launcher"))
             throw new Exception ("Fixture launcher must initially be stopped");
